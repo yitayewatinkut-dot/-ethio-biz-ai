@@ -97,40 +97,32 @@ function showIdeas(){let cap=+$('ideaCapital').value,sec=$('sector').value;let a
 function calculate(){let r=+$('revenue').value,d=+$('direct').value,o=+$('other').value;if(!r&&!d&&!o){$('calcResult').textContent='እባክህ ቁጥሮችን አስገባ።';$('calcResult').classList.remove('hide');return}let p=r-d-o;$('calcResult').classList.remove('hide');$('calcResult').innerHTML=`ጠቅላላ ገቢ፦ <b>${r.toLocaleString()} ብር</b><br>ጠቅላላ ወጪ፦ <b>${(d+o).toLocaleString()} ብር</b><br>የተገመተ ቀሪ ትርፍ፦ <b>${p.toLocaleString()} ብር</b><br><span class="small">ይህ ስሌት ያልተጠቀሱ ወጪዎችንና ግብርን አያካትትም።</span>`}
 function makeJobText(){let t=`ሰላም። በ${$('jobCity').value} ውስጥ ${$('jobType').value} ሥራ እፈልጋለሁ። የክፍያ ምርጫዬ ${$('pay').value} ነው። ተሞክሮ እና ችሎታ አለኝ። ተገቢ ክፍት የሥራ ዕድል ካለ እባክዎ ያሳውቁኝ። አመሰግናለሁ።`;$('jobResult').classList.remove('hide');$('jobResult').innerHTML=`${t}<br><button class="btn" style="margin-top:10px" onclick="copyText()">ጽሑፉን ቅዳ</button>`;window.jobText=t}
 function copyText(){if(navigator.clipboard)navigator.clipboard.writeText(window.jobText).then(()=>alert('ተቀድቷል')).catch(()=>alert(window.jobText));else alert(window.jobText)}
-
 async function advise() {
   const q = $('question').value.trim();
   const output = $('advice');
-
-  if (!q) {
-    output.textContent = 'እባክህ ጥያቄህን አስገባ።';
+ output.classList.remove('hide');
+if (!q) {
+   output.textContent = 'እባክህ ጥያቄህን አስገባ።';
     return;
   }
-
-  output.textContent = 'AI እያሰበ ነው...';
-
-  try {
+output.textContent = 'AI እያሰበ ነው...';
+try {
     const response = await fetch('/.netlify/functions/advise', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+      'Content-Type': 'application/json'
       },
       body: JSON.stringify({ question: q })
     });
-
-    const data = await response.json();
-
-    if (!response.ok) {
+ const data = await response.json();
+if (!response.ok) {
       throw new Error(data.error || 'AI ምላሽ ማግኘት አልተቻለም።');
     }
-
-    output.textContent = data.answer || 'ምላሽ አልተገኘም።';
-
-  } catch (error) {
+output.textContent = data.answer || 'ምላሽ አልተገኘም።';
+} catch (error) {
     output.textContent = 'ስህተት፦ ' + error.message;
   }
 }
-
-$('advice').classList.remove('hide');
-}</script>
-</body></html>
+</script>
+</body>
+</html>
