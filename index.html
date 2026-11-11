@@ -97,6 +97,19 @@ function showIdeas(){let cap=+$('ideaCapital').value,sec=$('sector').value;let a
 function calculate(){let r=+$('revenue').value,d=+$('direct').value,o=+$('other').value;if(!r&&!d&&!o){$('calcResult').textContent='እባክህ ቁጥሮችን አስገባ።';$('calcResult').classList.remove('hide');return}let p=r-d-o;$('calcResult').classList.remove('hide');$('calcResult').innerHTML=`ጠቅላላ ገቢ፦ <b>${r.toLocaleString()} ብር</b><br>ጠቅላላ ወጪ፦ <b>${(d+o).toLocaleString()} ብር</b><br>የተገመተ ቀሪ ትርፍ፦ <b>${p.toLocaleString()} ብር</b><br><span class="small">ይህ ስሌት ያልተጠቀሱ ወጪዎችንና ግብርን አያካትትም።</span>`}
 function makeJobText(){let t=`ሰላም። በ${$('jobCity').value} ውስጥ ${$('jobType').value} ሥራ እፈልጋለሁ። የክፍያ ምርጫዬ ${$('pay').value} ነው። ተሞክሮ እና ችሎታ አለኝ። ተገቢ ክፍት የሥራ ዕድል ካለ እባክዎ ያሳውቁኝ። አመሰግናለሁ።`;$('jobResult').classList.remove('hide');$('jobResult').innerHTML=`${t}<br><button class="btn" style="margin-top:10px" onclick="copyText()">ጽሑፉን ቅዳ</button>`;window.jobText=t}
 function copyText(){if(navigator.clipboard)navigator.clipboard.writeText(window.jobText).then(()=>alert('ተቀድቷል')).catch(()=>alert(window.jobText));else alert(window.jobText)}
-function advise(){let q=$('question').value.trim();if(!q){$('advice').textContent='ጥያቄህን አስገባ።'}else{$('advice').innerHTML='መጀመሪያ የሚከተሉትን 3 ነገሮች አረጋግጥ፦<br>1. በአካባቢህ የደንበኛ ፍላጎት አለ?<br>2. የመጀመሪያ ወጪና የዕለት ወጪ ስንት ነው?<br>3. ከመጀመርህ በፊት ቢያንስ 5 ደንበኞችን ጠይቀህ ፍላጎቱን ፈትሽ።<br><span class="small">ጥያቄህ፦ ${q.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}</span><br><b>ማስታወሻ፦</b> ይህ ገና ቀጥታ AI ሳይሆን የመጀመሪያ መመሪያ ነው።'}$('advice').classList.remove('hide')}
-</script>
+function advise(){
+let q=$('question').value.trim();
+if(!q){
+$('advice').textContent='ጥያቄህን አስገባ።';
+}else{
+let safeQ=q.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+$('advice').innerHTML=`መጀመሪያ የሚከተሉትን 3 ነገሮች አረጋግጥ፦<br>
+1. በአካባቢህ የደንበኛ ፍላጎት አለ?<br>
+2. የመጀመሪያ ወጪና የዕለት ወጪ ስንት ነው?<br>
+3. ከመጀመርህ በፊት ቢያንስ 5 ደንበኞችን ጠይቅ።<br>
+<span class="small">ጥያቄህ፦ ${safeQ}</span><br>
+<b>ማስታወሻ፦</b> ይህ ገና ቀጥታ AI ሳይሆን የመጀመሪያ መመሪያ ነው።`;
+}
+$('advice').classList.remove('hide');
+}</script>
 </body></html>
