@@ -100,21 +100,21 @@ function copyText(){if(navigator.clipboard)navigator.clipboard.writeText(window.
 async function advise() {
   const q = $('question').value.trim();
   const output = $('advice');
- output.classList.remove('hide');
+output.classList.remove('hide');
 if (!q) {
-   output.textContent = 'እባክህ ጥያቄህን አስገባ።';
+    output.textContent = 'እባክህ ጥያቄህን አስገባ።';
     return;
   }
-output.textContent = 'AI እያሰበ ነው...';
+output.textContent = 'Gemini AI እያሰበ ነው...';
 try {
     const response = await fetch('/.netlify/functions/advise', {
       method: 'POST',
       headers: {
-      'Content-Type': 'application/json'
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({ question: q })
     });
- const data = await response.json();
+const data = await response.json();
 if (!response.ok) {
       throw new Error(data.error || 'AI ምላሽ ማግኘት አልተቻለም።');
     }
