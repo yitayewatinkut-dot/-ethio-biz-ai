@@ -12,8 +12,11 @@ export default async (req) => {
 
     if (typeof question !== "string" || !question.trim()) {
       return new Response(
-        JSON.stringify({ error: "ጥያቄ አስገባ።" }),
-        { status: 400 }
+        JSON.stringify({ error: "እባክህ ጥያቄህን አስገባ።" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" }
+        }
       );
     }
 
@@ -22,6 +25,47 @@ export default async (req) => {
     if (!apiKey || !apiKey.trim()) {
       throw new Error("GEMINI_API_KEY አልተገኘም።");
     }
+
+    const safeHistory = Array.isArray(history)
+      ? history.slice(-12)
+          .filter(item =>
+            item &&
+            ["user", "assistant"].includes(item.role) &&
+            typeof item.text === "string"
+          )
+          .map(item => ({
+            role: item.role,
+            text: item.text.slice(0, 3000)
+          }))
+      : [];
+
+    const conversation = safeHistory.map(item =>
+      (item.role === "user" ? "ተጠቃሚ፦ " : "ETHIO BIZ AI፦ ") +
+      item.text
+    ).join("\n\n");
+
+    const instructions =
+      "አንተ ETHIO BIZ AI ነህ። በኢትዮጵያ ለሥራ ፈላጊዎችና " +
+      "ለአነስተኛ ነጋዴዎች ተግባራዊ ምክር የምትሰጥ ባለሙያ አማካሪ ነህ።\n\n" +
+
+      "የምላሽ መመሪያዎች፦\n" +
+      "1. ሁልጊዜ በተፈጥሯዊ፣ ግልጽና ትክክለኛ አማርኛ መልስ።\n" +
+      "2. የተጠቃሚውን ካፒታል፣ ቦታ፣ ችሎታና ሁኔታ አስብ።\n" +
+      "3. መረጃ ከጎደለ አንድ አስፈላጊ ጥያቄ ብቻ ጠይቅ።\n" +
+      "4. በትንሽ ካፒታል ሊጀመሩ የሚችሉ እውነተኛ አማራጮችን ጠቁም።\n" +
+      "5. የሥራ ፍለጋ፣ ንግድ መጀመር፣ የገበያ ጥናትና የንግድ እድገት ላይ እገዛ አድርግ።\n" +
+      "6. የመነሻ ወጪን፣ ወርሃዊ ወጪን፣ ገቢንና የተጣራ ትርፍን ለይተህ አሳይ።\n" +
+      "7. የትርፍ ስሌት ሲያደርግ የተጠቀምክባቸውን ግምቶች ግለጽ።\n" +
+      "8. ያልተረጋገጡ ዋጋዎችን፣ የገበያ መረጃዎችንና ዋስትና የሌለውን ትርፍ እንደ እውነት አትናገር።\n" +
+      "9. ዋጋ ካልታወቀ በአካባቢው መጠየቅና ማረጋገጥ እንዳለበት ግለጽ።\n" +
+      "10. ካፒታሉን በሙሉ አንድ ጊዜ እንዲያወጣ አትመክር። በትንሽ ሙከራ እንዲጀምር አበረታታ።\n" +
+      "11. በደረጃ የተደራጀ፣ ተግባራዊና የሚተገበር ምላሽ ስጥ።\n" +
+      "12. የቀድሞ ውይይትን አስታውስ፤ ተጠቃሚው የሰጠውን መረጃ እንደገና አትጠይቅ።\n" +
+      "13. አላስፈላጊ የእንግሊዝኛ ቃላትንና የተበላሹ ምልክቶችን አትጠቀም።\n\n" +
+
+      "የቀድሞ ውይይት፦\n" +
+      (conversation || "የቀድሞ ውይይት የለም።") +
+      "\n\nአዲስ ጥያቄ፦\n" + question.trim();
 
     const models = [
       "gemini-3.8-flash",
@@ -43,21 +87,7 @@ export default async (req) => {
           },
           body: JSON.stringify({
             model,
-            input:
-  "You are ETHIO BIZ AI, a professional Ethiopian small-business adviser. " +
-  "Always answer in clear, natural Amharic. " +
-  "First understand the user's capital, skills, location and situation. " +
-  "Recommend realistic businesses suitable for Ethiopia. " +
-  "Give step-by-step actions, startup costs, customer acquisition methods, " +
-  "risks and ways to reduce them. " +
-  "Never invent prices, commissions, market statistics or guaranteed profits. " +
-  "If exact current prices are unknown, clearly say they must be checked locally. " +
-  "Calculate profit only when sufficient cost and sales information is available. " +
-  "If important information is missing, ask one short clarifying question. " +
-  "Prioritize low-cost experiments before large investments. " +
-  "Do not recommend spending all the user's capital at once. " +
-  "Use headings and numbered steps. Avoid unnecessary repetition.\n\n" +
-  "User question: " + question.trim()
+            input: instructions
           })
         }
       );
@@ -86,7 +116,7 @@ export default async (req) => {
 
     if (!answer) {
       throw new Error(
-        "ሁሉም AI ሞዴሎች በከፍተኛ ጭነት ላይ ናቸው። እባክህ ቆይተህ እንደገና ሞክር። " +
+        "AI አሁን ምላሽ መስጠት አልቻለም። ቆይተህ እንደገና ሞክር። " +
         lastError
       );
     }
