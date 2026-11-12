@@ -23,11 +23,11 @@ export default async (req) => {
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey || !apiKey.trim()) {
-      throw new Error("GEMINI_API_KEY በNetlify አልተገኘም።");
+      throw new Error("GEMINI_API_KEY አልተገኘም።");
     }
 
     const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+      "https://generativelanguage.googleapis.com/v1beta/interactions",
       {
         method: "POST",
         headers: {
@@ -35,21 +35,13 @@ export default async (req) => {
           "x-goog-api-key": apiKey.trim()
         },
         body: JSON.stringify({
-          system_instruction: {
-            parts: [
-              {
-                text: "You are ETHIO BIZ AI, an Ethiopian business adviser. Answer in clear Amharic. Give realistic, practical business advice for Ethiopia. Explain costs, customers, risks and possible profit. Never invent verified market facts."
-              }
-            ]
-          },
-          contents: [
-            {
-              role: "user",
-              parts: [
-                { text: question.trim() }
-              ]
-            }
-          ]
+          model: "gemini-3.8-flash",
+          input:
+            "You are ETHIO BIZ AI, an Ethiopian business adviser. " +
+            "Answer in clear Amharic. Give realistic, practical " +
+            "business advice for Ethiopia. Explain costs, customers, " +
+            "risks and possible profit. Never invent verified market facts.\n\n" +
+            "User question: " + question.trim()
         })
       }
     );
@@ -62,10 +54,16 @@ export default async (req) => {
       );
     }
 
-    const answer =
-      data.candidates?.[0]?.content?.parts
-        ?.map((p) => p.text || "")
-        .join("") || "ምላሽ አልተገኘም።";
+    const answer = (data.steps || [])
+      .filter(step => step.type === "model_output")
+      .flatMap(step => step.content || [])
+      .filter(item => item.type === "text")
+      .map(item => item.text || "")
+      .join("");
+
+    if (!answer) {
+      throw new Error("AI ምላሽ አልተገኘም።");
+    }
 
     return new Response(
       JSON.stringify({ answer }),
@@ -89,3 +87,4 @@ export default async (req) => {
     );
   }
 };
+
