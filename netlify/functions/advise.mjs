@@ -158,7 +158,23 @@ ETHIO BIZ AI ተራ የጥያቄ መልስ
       }
     );
 
-    const data = await response.json();
+    const raw = await response.text();
+
+let data;
+
+try {
+  data = JSON.parse(raw);
+} catch (error) {
+  return new Response(
+    JSON.stringify({
+      error: "OpenAI ትክክለኛ JSON ምላሽ አልሰጠም። HTTP Status: " + response.status
+    }),
+    {
+      status: 502,
+      headers: { "Content-Type": "application/json" }
+    }
+  );
+}
 
     if (!response.ok) {
       return new Response(
