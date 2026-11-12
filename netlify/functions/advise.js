@@ -8,7 +8,7 @@ export default async (req) => {
   }
 
   try {
-    const { question } = await req.json();
+    const { question, history = [] } = await req.json();
 
     if (typeof question !== "string" || !question.trim()) {
       return new Response(
