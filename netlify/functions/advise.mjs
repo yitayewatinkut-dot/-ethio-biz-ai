@@ -128,7 +128,17 @@ const instructions = `
         body: JSON.stringify({
           model: "gpt-4.1-mini",
           instructions,
-          input: question.trim(),
+          input: [
+  {
+    role: "user",
+    content: [
+      {
+        type: "input_text",
+        text: question.trim()
+      }
+    ]
+  }
+],
           max_output_tokens: 1800
         })
       }
