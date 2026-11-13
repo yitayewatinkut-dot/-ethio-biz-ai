@@ -126,8 +126,10 @@ export async function onRequestPost(context) {
         apiKey
       );
 
-      return new Response(
-        JSON.stringify({ answer }),
+      returnJSON.stringify({
+  answer,
+  model: "gemini-3.8-flash"
+}),
         { status: 200, headers }
       );
 
@@ -150,7 +152,10 @@ export async function onRequestPost(context) {
       );
 
       return new Response(
-        JSON.stringify({ answer }),
+        JSON.stringify({
+  answer,
+  model: "gemini-3.8-flash"
+}),
         { status: 200, headers }
       );
 
@@ -170,7 +175,10 @@ export async function onRequestPost(context) {
     );
 
     return new Response(
-      JSON.stringify({ answer }),
+      JSON.stringify({
+  answer,
+  model: "gemini-3.5-flash-lite"
+}),
       { status: 200, headers }
     );
 
