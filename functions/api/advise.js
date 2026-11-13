@@ -1,4 +1,68 @@
 
+const SYSTEM_INSTRUCTION = `
+አንተ ETHIO BIZ AI ነህ።
+የኢትዮጵያ የንግድ፣ የሥራና የሥራ ፈጠራ አማካሪ ነህ።
+
+ዋና ዓላማህ ለኢትዮጵያ ሥራ ፈላጊዎች፣ ለአነስተኛ ነጋዴዎችና ለሥራ ፈጣሪዎች ተግባራዊ ምክር መስጠት ነው።
+
+መመሪያዎች፦
+1. በግልጽና በቀላል አማርኛ መልስ።
+2. ተግባራዊ፣ እውነተኛና ሊፈጸም የሚችል ምክር ስጥ።
+3. የተጠቃሚውን ካፒታል፣ ቦታና አቅም ከግምት አስገባ።
+4. የማታውቀውን እውነት አድርገህ አትናገር።
+5. ያልተረጋገጠ መረጃን እንደ ግምት ግለጽ።
+6. የንግድ ሀሳብ ስትሰጥ ቢያንስ 5 አማራጮችን፣ ወጪዎችንና አደጋዎችን አብራራ።
+7. ገቢንና ትርፍን ለይተህ ግለጽ።
+8. የተጠቃሚውን ያለፈ ውይይት፣ ቦታ፣ ገንዘብ ወይም ውሳኔ አትፍጠር።
+9. ምክርህን በደረጃ ደረጃ አቅርብ።
+10. የኢትዮጵያን የኢኮኖሚ ሁኔታና የአካባቢ ልዩነት ከግምት አስገባ።
+`;
+
+const sleep = (ms) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
+async function callGemini(model, contents, apiKey) {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey
+      },
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: SYSTEM_INSTRUCTION }]
+        },
+        contents,
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 2048
+        }
+      })
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    const error = new Error("Gemini API request failed");
+    error.status = response.status;
+    throw error;
+  }
+
+  const answer = data.candidates?.[0]?.content?.parts
+    ?.map((part) => part.text || "")
+    .join("")
+    .trim();
+
+  if (!answer) {
+    throw new Error("Empty AI response");
+  }
+
+  return answer;
+}
+
 export async function onRequestPost(context) {
   const headers = {
     "Content-Type": "application/json; charset=utf-8"
@@ -14,23 +78,21 @@ export async function onRequestPost(context) {
       );
     }
 
+    if (question.length > 10000) {
+      return new Response(
+        JSON.stringify({ error: "ጥያቄው ከ10,000 ፊደላት መብለጥ የለበትም።" }),
+        { status: 400, headers }
+      );
+    }
+
     const apiKey = context.env.GEMINI_API_KEY;
 
     if (!apiKey) {
       return new Response(
-        JSON.stringify({ error: "GEMINI_API_KEY አልተገኘም።" }),
+        JSON.stringify({ error: "API key አልተዘጋጀም።" }),
         { status: 500, headers }
       );
     }
-
-    const instructions = `
-አንተ ETHIO BIZ AI ነህ።
-ለኢትዮጵያ ሥራ ፈላጊዎችና ለአነስተኛ ነጋዴዎች
-በአማርኛ ተግባራዊ፣ ትክክለኛና በዝርዝር ምክር ትሰጣለህ።
-የተጠቃሚውን በጀት፣ አካባቢና አቅም አስብ።
-የማይታወቅ መረጃን እንደተረጋገጠ አትናገር።
-በተቻለ መጠን ደረጃ በደረጃ መልስ።
-`;
 
     const contents = [];
 
@@ -42,8 +104,10 @@ export async function onRequestPost(context) {
           item.text.trim()
         ) {
           contents.push({
-            role: item.role === "assistant" ? "model" : "user",
-            parts: [{ text: item.text }]
+            role: item.role === "assistant" || item.role === "model"
+              ? "model"
+              : "user",
+            parts: [{ text: item.text.slice(0, 5000) }]
           });
         }
       }
@@ -54,48 +118,56 @@ export async function onRequestPost(context) {
       parts: [{ text: question.trim() }]
     });
 
-    const response = await fetch(
-"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": apiKey
-        },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: instructions }]
-          },
-          contents,
-          generationConfig: {
-            maxOutputTokens: 1800,
-            temperature: 0.7
-          }
-        })
+    // First try: Gemini 3.8 Flash
+    try {
+      const answer = await callGemini(
+        "gemini-3.8-flash",
+        contents,
+        apiKey
+      );
+
+      return new Response(
+        JSON.stringify({ answer }),
+        { status: 200, headers }
+      );
+
+    } catch (firstError) {
+      const temporary = [500, 502, 503, 504].includes(firstError.status);
+
+      if (!temporary) {
+        throw firstError;
       }
+    }
+
+    // Retry Gemini 3.8 Flash once
+    await sleep(1000);
+
+    try {
+      const answer = await callGemini(
+        "gemini-3.8-flash",
+        contents,
+        apiKey
+      );
+
+      return new Response(
+        JSON.stringify({ answer }),
+        { status: 200, headers }
+      );
+
+    } catch (retryError) {
+      const temporary = [500, 502, 503, 504].includes(retryError.status);
+
+      if (!temporary) {
+        throw retryError;
+      }
+    }
+
+    // Fallback: Gemini 3.5 Flash Lite
+    const answer = await callGemini(
+      "gemini-3.5-flash-lite",
+      contents,
+      apiKey
     );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return new Response(
-        JSON.stringify({
-          error: data.error?.message || "Gemini API ስህተት ተፈጥሯል።"
-        }),
-        { status: 502, headers }
-      );
-    }
-
-    const answer = data.candidates?.[0]?.content?.parts
-      ?.map(part => part.text || "")
-      .join("\n");
-
-    if (!answer) {
-      return new Response(
-        JSON.stringify({ error: "AI ምላሽ አልሰጠም። እንደገና ሞክር።" }),
-        { status: 502, headers }
-      );
-    }
 
     return new Response(
       JSON.stringify({ answer }),
@@ -105,9 +177,9 @@ export async function onRequestPost(context) {
   } catch (error) {
     return new Response(
       JSON.stringify({
-        error: "የአገልግሎት ስህተት፦ " + error.message
+        error: "አሁን ምላሽ ማግኘት አልተቻለም። እባክህ እንደገና ሞክር።"
       }),
-      { status: 500, headers }
+      { status: error.status || 500, headers }
     );
   }
 }
