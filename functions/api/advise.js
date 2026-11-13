@@ -126,12 +126,13 @@ export async function onRequestPost(context) {
         apiKey
       );
 
-      returnJSON.stringify({
-  answer,
-  model: "gemini-3.8-flash"
-}),
-        { status: 200, headers }
-      );
+      return new Response(
+  JSON.stringify({
+    answer,
+    model: "gemini-3.8-flash"
+  }),
+  { status: 200, headers }
+);
 
     } catch (firstError) {
       const temporary = [500, 502, 503, 504].includes(firstError.status);
