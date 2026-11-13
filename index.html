@@ -261,9 +261,17 @@ try {
     }
 
     const answer=data.answer||'ምላሽ አልተገኘም።';
-output.textContent = answer;
+const model=data.model||'ሞዴሉ አልተለየም';
 
-chatHistory.push({role:'assistant',text:answer});
+const displayAnswer = answer +
+  '\n\n🤖 AI Model: ' + model;
+
+output.textContent = displayAnswer;
+
+chatHistory.push({
+  role:'assistant',
+  text:displayAnswer
+});
     // የመጨረሻዎቹን 20 መልዕክቶች ብቻ አስቀምጥ
     chatHistory=chatHistory.slice(-20);
 
