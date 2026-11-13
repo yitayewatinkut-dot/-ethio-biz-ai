@@ -261,9 +261,9 @@ try {
     }
 
     const answer=data.answer||'ምላሽ አልተገኘም።';
+output.textContent = answer;
 
-    chatHistory.push({role:'assistant',text:answer});
-
+chatHistory.push({role:'assistant',text:answer});
     // የመጨረሻዎቹን 20 መልዕክቶች ብቻ አስቀምጥ
     chatHistory=chatHistory.slice(-20);
 
