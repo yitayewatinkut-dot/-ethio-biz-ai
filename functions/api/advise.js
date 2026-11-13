@@ -5,69 +5,72 @@ export async function onRequestPost(context) {
   };
 
   try {
-    const { request, env } = context;
-    const body = await request.json();
-    const question = body.question;
+    const { question, history = [] } = await context.request.json();
 
     if (typeof question !== "string" || !question.trim()) {
       return new Response(
-        JSON.stringify({ error: "እባክህ ጥያቄህን አስገባ።" }),
+        JSON.stringify({ error: "እባክህ ጥያቄ አስገባ።" }),
         { status: 400, headers }
       );
     }
 
-    if (question.length > 10000) {
-      return new Response(
-        JSON.stringify({ error: "ጥያቄው ከመጠን በላይ ረጅም ነው።" }),
-        { status: 400, headers }
-      );
-    }
-
-    const apiKey = env.OPENAI_API_KEY;
+    const apiKey = context.env.GEMINI_API_KEY;
 
     if (!apiKey) {
       return new Response(
-        JSON.stringify({ error: "API key not configured" }),
+        JSON.stringify({ error: "GEMINI_API_KEY አልተገኘም።" }),
         { status: 500, headers }
       );
     }
 
     const instructions = `
 አንተ ETHIO BIZ AI ነህ።
-የኢትዮጵያ የንግድ፣ የሥራና የሥራ ፈጠራ አማካሪ ነህ።
-
-- በግልጽና ትክክለኛ አማርኛ መልስ።
-- የተጠቃሚውን ያልተናገረውን የቀድሞ ውይይት አትፍጠር።
-- ያልተሰጠ ቦታ፣ ካፒታል ወይም የንግድ ውሳኔ አትገምት።
-- የንግድ ሃሳብ ሲጠየቅ ቢያንስ 5 አማራጮችን፣ ወጪና አደጋቸውን ግለጽ።
-- ገቢን ከትርፍ አትቀላቅል።
-- የተረጋገጠ መረጃን ከግምት ለይ።
-- ተግባራዊና እውነተኛ ምክር ስጥ።
+ለኢትዮጵያ ሥራ ፈላጊዎችና ለአነስተኛ ነጋዴዎች
+በአማርኛ ተግባራዊ፣ ትክክለኛና በዝርዝር ምክር ትሰጣለህ።
+የተጠቃሚውን በጀት፣ አካባቢና አቅም አስብ።
+የማይታወቅ መረጃን እንደተረጋገጠ አትናገር።
+በተቻለ መጠን ደረጃ በደረጃ መልስ።
 `;
 
+    const contents = [];
+
+    if (Array.isArray(history)) {
+      for (const item of history.slice(-12)) {
+        if (
+          item &&
+          typeof item.text === "string" &&
+          item.text.trim()
+        ) {
+          contents.push({
+            role: item.role === "assistant" ? "model" : "user",
+            parts: [{ text: item.text }]
+          });
+        }
+      }
+    }
+
+    contents.push({
+      role: "user",
+      parts: [{ text: question.trim() }]
+    });
+
     const response = await fetch(
-      "https://api.openai.com/v1/responses",
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`
+          "x-goog-api-key": apiKey
         },
         body: JSON.stringify({
-          model: "gpt-4.1-mini",
-          instructions,
-          input: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "input_text",
-                  text: question.trim()
-                }
-              ]
-            }
-          ],
-          max_output_tokens: 1800
+          systemInstruction: {
+            parts: [{ text: instructions }]
+          },
+          contents,
+          generationConfig: {
+            maxOutputTokens: 1800,
+            temperature: 0.7
+          }
         })
       }
     );
@@ -77,29 +80,32 @@ export async function onRequestPost(context) {
     if (!response.ok) {
       return new Response(
         JSON.stringify({
-          error: data.error?.message || "AI request failed"
+          error: data.error?.message || "Gemini API ስህተት ተፈጥሯል።"
         }),
-        { status: response.status, headers }
+        { status: 502, headers }
       );
     }
 
-    const answer = (data.output || [])
-      .flatMap(item => item.content || [])
-      .filter(part => part.type === "output_text")
-      .map(part => part.text)
+    const answer = data.candidates?.[0]?.content?.parts
+      ?.map(part => part.text || "")
       .join("\n");
 
+    if (!answer) {
+      return new Response(
+        JSON.stringify({ error: "AI ምላሽ አልሰጠም። እንደገና ሞክር።" }),
+        { status: 502, headers }
+      );
+    }
+
     return new Response(
-      JSON.stringify({
-        answer: answer || "ምላሽ ማግኘት አልተቻለም።"
-      }),
+      JSON.stringify({ answer }),
       { status: 200, headers }
     );
 
   } catch (error) {
     return new Response(
       JSON.stringify({
-        error: "የማያያዣ ስህተት ተፈጥሯል።"
+        error: "የአገልግሎት ስህተት፦ " + error.message
       }),
       { status: 500, headers }
     );
