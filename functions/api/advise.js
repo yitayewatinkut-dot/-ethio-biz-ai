@@ -185,8 +185,8 @@ export async function onRequestPost(context) {
 
   } catch (error) {
     return new Response(
-      JSON.stringify({
-        error: "አሁን ምላሽ ማግኘት አልተቻለም። እባክህ እንደገና ሞክር።"
+      JSON.stringify({error: "ስህተት፦ " + (error.message || "ዝርዝር የለም") +
+  " | HTTP: " + (error.status || 500)
       }),
       { status: error.status || 500, headers }
     );
