@@ -135,8 +135,7 @@ export async function onRequestPost(context) {
 );
 
     } catch (firstError) {
-      const temporary = [500, 502, 503, 504].includes(firstError.status);
-
+      const temporary = [429, 500, 502, 503, 504].includes(retryError.status);
       if (!temporary) {
         throw firstError;
       }
@@ -147,7 +146,7 @@ export async function onRequestPost(context) {
 
     try {
       const answer = await callGemini(
-        "gemini-3.8-flash",
+        "gemini-3.8-flash",ሐ
         contents,
         apiKey
       );
@@ -160,8 +159,7 @@ export async function onRequestPost(context) {
         { status: 200, headers }
       );
 
-    } catch (retryError) {
-      const temporary = [500, 502, 503, 504].includes(retryError.status);
+    } catch (retryError) {const temporary = [429, 500, 502, 503, 504].includes(retryError.status);
 
       if (!temporary) {
         throw retryError;
