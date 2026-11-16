@@ -227,6 +227,7 @@ output.style.whiteSpace='normal';
 
 showChatHistory();
 
+
 async function advise(){
   const q=$('question').value.trim();
   const output=$('advice');
@@ -244,9 +245,11 @@ async function advise(){
   saveChatHistory();
   showChatHistory();
 
-  output.textContent+=' \n\nGemini AI እያሰበ ነው...';
-
+  output.textContent='Gemini AI እያሰበ ነው...';
   $('question').value='';
+
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),45000);
 
   try{
     const response=await fetch('/api/advise',{
@@ -255,47 +258,53 @@ async function advise(){
       body:JSON.stringify({
         question:q,
         history:previousHistory
-      })
+      }),
+      signal:controller.signal
     });
 
-    const raw = await response.text();
+    const raw=await response.text();
+    let data;
 
-let data;
-
-try {
-  data = JSON.parse(raw);
-} catch (e) {
-  throw new Error(
-    'Cloudflare JSON ሳይሆን HTML ምላሽ መጣ። HTTP Status: ' + response.status
-  );
-}
+    try{
+      data=JSON.parse(raw);
+    }catch(e){
+      throw new Error(
+        'Cloudflare JSON ሳይሆን HTML ምላሽ መጣ። HTTP Status: '+response.status
+      );
+    }
 
     if(!response.ok){
       throw new Error(data.error||'AI ምላሽ ማግኘት አልተቻለም።');
     }
 
     const answer=data.answer||'ምላሽ አልተገኘም።';
-const model=data.model||'ሞዴሉ አልተለየም';
+    const model=data.model||'ሞዴሉ አልተለየም';
 
-const displayAnswer = answer +
-  '\n\n🤖 AI Model: ' + model;
+    const displayAnswer=answer+
+      '\n\n🤖 AI Model: '+model;
 
-output.textContent = displayAnswer;
+    output.textContent=displayAnswer;
 
-chatHistory.push({
-  role:'assistant',
-  text:displayAnswer
-});
-    // የመጨረሻዎቹን 20 መልዕክቶች ብቻ አስቀምጥ
+    chatHistory.push({
+      role:'assistant',
+      text:displayAnswer
+    });
+
     chatHistory=chatHistory.slice(-20);
-
     saveChatHistory();
     showChatHistory();
 
   }catch(error){
-    output.textContent+=' \n\nስህተት፦ '+error.message;
+    if(error.name==='AbortError'){
+      output.textContent='ስህተት፦ ከ45 ሰከንድ በኋላ ምላሽ አልደረሰም። Cloudflare ወይም Gemini API ላይ መዘግየት ሊኖር ይችላል።';
+    }else{
+      output.textContent='ስህተት፦ '+error.message;
+    }
+  }finally{
+    clearTimeout(timeout);
   }
 }
+
 </script>
 
 </body>
