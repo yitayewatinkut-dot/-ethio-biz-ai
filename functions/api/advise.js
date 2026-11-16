@@ -212,16 +212,43 @@ export async function onRequestPost(context) {
     "Content-Type": "application/json; charset=utf-8"
   };
 
-  try {
-    const { question, history = [] } = await context.request.json();
+    try {
+    const contentLength = Number(context.request.headers.get("Content-Length") || 0);
 
-    if (typeof question !== "string" || !question.trim()) {
+    if (contentLength > 64 * 1024) {
       return new Response(
-        JSON.stringify({ error: "እባክህ ጥያቄ አስገባ።" }),
+        JSON.stringify({ error: "የተላከው መረጃ ከመጠን በላይ ነው።" }),
+        { status: 413, headers }
+      );
+    }
+
+    const rawBody = await context.request.text();
+
+    if (new TextEncoder().encode(rawBody).length > 64 * 1024) {
+      return new Response(
+        JSON.stringify({ error: "የተላከው መረጃ ከመጠን በላይ ነው።" }),
+        { status: 413, headers }
+      );
+    }
+
+    let payload;
+    try {
+      payload = JSON.parse(rawBody);
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "የተላከው መረጃ ትክክለኛ JSON አይደለም።" }),
         { status: 400, headers }
       );
     }
 
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+      return new Response(
+        JSON.stringify({ error: "የተላከው መረጃ ቅርጽ ትክክል አይደለም።" }),
+        { status: 400, headers }
+      );
+    }
+
+    const { question, history = [] } = payload;
     if (question.length > 10000) {
       return new Response(
         JSON.stringify({ error: "ጥያቄው ከ10,000 ፊደላት መብለጥ የለበትም።" }),
@@ -239,24 +266,32 @@ export async function onRequestPost(context) {
     }
 
     const contents = [];
+let historyCharacters = 0;
 
-    if (Array.isArray(history)) {
-      for (const item of history.slice(-12)) {
-        if (
-          item &&
-          typeof item.text === "string" &&
-          item.text.trim()
-        ) {
-          contents.push({
-            role: item.role === "assistant" || item.role === "model"
-              ? "model"
-              : "user",
-            parts: [{ text: item.text.slice(0, 5000) }]
-          });
-        }
+if (Array.isArray(history)) {
+  for (const item of history.slice(-12)) {
+    if (
+      item &&
+      typeof item === "object" &&
+      typeof item.text === "string" &&
+      item.text.trim() &&
+      historyCharacters < 12000
+    ) {
+      const remaining = 12000 - historyCharacters;
+      const safeText = item.text.trim().slice(0, Math.min(3000, remaining));
+
+      if (safeText) {
+        contents.push({
+          role: item.role === "assistant" || item.role === "model"
+            ? "model"
+            : "user",
+          parts: [{ text: safeText }]
+        });
+        historyCharacters += safeText.length;
       }
     }
-
+  }
+}
     contents.push({
       role: "user",
       parts: [{ text: question.trim() }]
