@@ -162,109 +162,9 @@ const SYSTEM_INSTRUCTION = `
 48. የሰላምታና የውይይት መቀጠል ሕግ፦
 ተጠቃሚው "ሰላም"፣ "ጤና ይስጥልኝ" ወይም ተመሳሳይ አጭር ሰላምታ ብቻ ከላከ፣ በተፈጥሮ ሰላምታ መልስ። ያለ ግልጽ ጥያቄ የቀድሞ ርዕስን፣ የተጠቃሚውን የገንዘብ ሁኔታ ወይም የንግድ ዕቅድ በራስህ አትጀምር። ተጠቃሚው ቀድሞ ያለውን ውይይት መቀጠል እንደሚፈልግ ካልገለጸ፣ ምን እንደሚፈልግ በአጭሩ ጠይቅ።
 `;
+
 const sleep = (ms) =>
   new Promise((resolve) => setTimeout(resolve, ms));
-
-async function callGemini(model, contents, apiKey) {
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": apiKey
-      },
-      body: JSON.stringify({
-        systemInstruction: {
-          parts: [{ text: SYSTEM_INSTRUCTION }]
-        },
-        contents,
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 2048
-        }
-      })
-    }
-  );
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    const error = new Error("Gemini API request failed");
-    error.status = response.status;
-    throw error;
-  }
-
-  const answer = data.candidates?.[0]?.content?.parts
-    ?.map((part) => part.text || "")
-    .join("")
-    .trim();
-
-  if (!answer) {
-    throw new Error("Empty AI response");
-  }
-
-  return answer;
-}
-
-export async function onRequestPost(context) {
-  const headers = {
-    "Content-Type": "application/json; charset=utf-8"
-  };
-
-    try {
-    const contentLength = Number(context.request.headers.get("Content-Length") || 0);
-
-    if (contentLength > 64 * 1024) {
-      return new Response(
-        JSON.stringify({ error: "የተላከው መረጃ ከመጠን በላይ ነው።" }),
-        { status: 413, headers }
-      );
-    }
-
-    const rawBody = await context.request.text();
-
-    if (new TextEncoder().encode(rawBody).length > 64 * 1024) {
-      return new Response(
-        JSON.stringify({ error: "የተላከው መረጃ ከመጠን በላይ ነው።" }),
-        { status: 413, headers }
-      );
-    }
-
-    let payload;
-    try {
-      payload = JSON.parse(rawBody);
-    } catch {
-      return new Response(
-        JSON.stringify({ error: "የተላከው መረጃ ትክክለኛ JSON አይደለም።" }),
-        { status: 400, headers }
-      );
-    }
-
-    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-      return new Response(
-        JSON.stringify({ error: "የተላከው መረጃ ቅርጽ ትክክል አይደለም።" }),
-        { status: 400, headers }
-      );
-    }
-
- const { question, history = [] } = payload;
-
-if (typeof question !== "string" || !question.trim()) {
-  return new Response(
-    JSON.stringify({ error: "እባክህ ትክክለኛ ጥያቄ አስገባ።" }),
-    { status: 400, headers }
-  );
-}
-
-if (question.length > 10000) {
-      return new Response(
-        JSON.stringify({ error: "ጥያቄው ከ10,000 ፊደላት መብለጥ የለበትም።" }),
-        { status: 400, headers }
-      );
-    }
-
-    const apiKey = context.env.GEMINI_API_KEY;
 
 async function callGemini(model, contents, apiKey) {
   const controller = new AbortController();
@@ -330,4 +230,3 @@ async function callGemini(model, contents, apiKey) {
     clearTimeout(timeout);
   }
 }
-
