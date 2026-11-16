@@ -248,8 +248,16 @@ export async function onRequestPost(context) {
       );
     }
 
-    const { question, history = [] } = payload;
-    if (question.length > 10000) {
+ const { question, history = [] } = payload;
+
+if (typeof question !== "string" || !question.trim()) {
+  return new Response(
+    JSON.stringify({ error: "እባክህ ትክክለኛ ጥያቄ አስገባ።" }),
+    { status: 400, headers }
+  );
+}
+
+if (question.length > 10000) {
       return new Response(
         JSON.stringify({ error: "ጥያቄው ከ10,000 ፊደላት መብለጥ የለበትም።" }),
         { status: 400, headers }
@@ -258,114 +266,68 @@ export async function onRequestPost(context) {
 
     const apiKey = context.env.GEMINI_API_KEY;
 
-    if (!apiKey) {
-      return new Response(
-        JSON.stringify({ error: "API key አልተዘጋጀም።" }),
-        { status: 500, headers }
-      );
-    }
+async function callGemini(model, contents, apiKey) {
+  const controller = new AbortController();
 
-    const contents = [];
-let historyCharacters = 0;
+  const timeout = setTimeout(() => {
+    controller.abort();
+  }, 12000);
 
-if (Array.isArray(history)) {
-  for (const item of history.slice(-12)) {
-    if (
-      item &&
-      typeof item === "object" &&
-      typeof item.text === "string" &&
-      item.text.trim() &&
-      historyCharacters < 12000
-    ) {
-      const remaining = 12000 - historyCharacters;
-      const safeText = item.text.trim().slice(0, Math.min(3000, remaining));
-
-      if (safeText) {
-        contents.push({
-          role: item.role === "assistant" || item.role === "model"
-            ? "model"
-            : "user",
-          parts: [{ text: safeText }]
-        });
-        historyCharacters += safeText.length;
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey
+        },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: SYSTEM_INSTRUCTION }]
+          },
+          contents,
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 2048
+          }
+        }),
+        signal: controller.signal
       }
-    }
-  }
-}
-    contents.push({
-      role: "user",
-      parts: [{ text: question.trim() }]
-    });
-
-    // First try: Gemini 3.8 Flash
-    try {
-      const answer = await callGemini(
-        "gemini-3.8-flash",
-        contents,
-        apiKey
-      );
-
-      return new Response(
-  JSON.stringify({
-    answer,
-    model: "gemini-3.8-flash"
-  }),
-  { status: 200, headers }
-);
-
-    } catch (firstError) {const temporary = [429, 500, 502, 503, 504].includes(firstError.status);
-      if (!temporary) {
-        throw firstError;
-      }
-    }
-
-    // Retry Gemini 3.8 Flash once
-    await sleep(1000);
-
-    try {
-      const answer = await callGemini(
-        "gemini-3.8-flash",
-        contents,
-        apiKey
-      );
-
-      return new Response(
-        JSON.stringify({
-  answer,
-  model: "gemini-3.8-flash"
-}),
-        { status: 200, headers }
-      );
-
-} catch (retryError) {
-  const temporary = [429, 500, 502, 503, 504].includes(retryError.status);
-
-      if (!temporary) {
-        throw retryError;
-      }
-    }
-
-    // Fallback: Gemini 3.5 Flash Lite
-    const answer = await callGemini(
-      "gemini-3.5-flash-lite",
-      contents,
-      apiKey
     );
 
-    return new Response(
-      JSON.stringify({
-  answer,
-  model: "gemini-3.5-flash-lite"
-}),
-      { status: 200, headers }
-    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      const error = new Error(
+        data.error?.message || "Gemini API request failed"
+      );
+      error.status = response.status;
+      throw error;
+    }
+
+    const answer = data.candidates?.[0]?.content?.parts
+      ?.map((part) => part.text || "")
+      .join("")
+      .trim();
+
+    if (!answer) {
+      throw new Error("Empty AI response");
+    }
+
+    return answer;
 
   } catch (error) {
-    return new Response(
-      JSON.stringify({error: "ስህተት፦ " + (error.message || "ዝርዝር የለም") +
-  " | HTTP: " + (error.status || 500)
-      }),
-      { status: error.status || 500, headers }
-    );
+    if (error.name === "AbortError") {
+      throw new Error(
+        "Gemini API በ12 ሰከንድ ውስጥ ምላሽ አልሰጠም።"
+      );
+    }
+
+    throw error;
+
+  } finally {
+    clearTimeout(timeout);
   }
 }
+
