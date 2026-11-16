@@ -147,11 +147,25 @@ function calculate(){
   $('calcResult').innerHTML=`ጠቅላላ ገቢ፦ <b>${r.toLocaleString()} ብር</b><br>ጠቅላላ ወጪ፦ <b>${(d+o).toLocaleString()} ብር</b><br>የተገመተ ቀሪ ትርፍ፦ <b>${p.toLocaleString()} ብር</b><br><span class="small">ይህ ስሌት ያልተጠቀሱ ወጪዎችንና ግብርን አያካትትም።</span>`;
 }
 
+
 function makeJobText(){
   let t=`ሰላም። በ${$('jobCity').value} ውስጥ ${$('jobType').value} ሥራ እፈልጋለሁ። የክፍያ ምርጫዬ ${$('pay').value} ነው። ተሞክሮ እና ችሎታ አለኝ። ተገቢ ክፍት የሥራ ዕድል ካለ እባክዎ ያሳውቁኝ። አመሰግናለሁ።`;
-  $('jobResult').classList.remove('hide');
-  $('jobResult').innerHTML=`${t}<br><button class="btn" style="margin-top:10px" onclick="copyText()">ጽሑፉን ቅዳ</button>`;
-  window.jobText=t;
+
+  const result = $('jobResult');
+  result.classList.remove('hide');
+  result.replaceChildren();
+
+  result.appendChild(document.createTextNode(t));
+  result.appendChild(document.createElement('br'));
+
+  const btn = document.createElement('button');
+  btn.className = 'btn';
+  btn.style.marginTop = '10px';
+  btn.textContent = 'ጽሑፉን ቅዳ';
+  btn.addEventListener('click', copyText);
+
+  result.appendChild(btn);
+  window.jobText = t;
 }
 
 function copyText(){
