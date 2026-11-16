@@ -217,16 +217,19 @@ async function callGemini(model, contents, apiKey) {
 
     return answer;
 
-  } catch (error) {
+
+} catch (error) {
     if (error.name === "AbortError") {
-      throw new Error(
+      const timeoutError = new Error(
         "Gemini API በ12 ሰከንድ ውስጥ ምላሽ አልሰጠም።"
       );
+      timeoutError.status = 503;
+      throw timeoutError;
     }
 
     throw error;
 
-  } finally {
+} finally {
     clearTimeout(timeout);
   }
 }
