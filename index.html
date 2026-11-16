@@ -294,7 +294,11 @@ async function advise(){
     saveChatHistory();
     showChatHistory();
 
-  }catch(error){
+    }catch(error){
+    chatHistory.pop();
+    saveChatHistory();
+    showChatHistory();
+
     if(error.name==='AbortError'){
       output.textContent='ስህተት፦ ከ45 ሰከንድ በኋላ ምላሽ አልደረሰም። Cloudflare ወይም Gemini API ላይ መዘግየት ሊኖር ይችላል።';
     }else{
