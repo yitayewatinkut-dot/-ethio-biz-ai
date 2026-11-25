@@ -80,7 +80,35 @@ button:active{transform:scale(.99)}.small{font-size:12px}.hide{display:none!impo
 <div class="card"><h2>ስለ ETHIO BIZ AI</h2><p>ዓላማው በኢትዮጵያ ያሉ ሥራ ፈላጊዎችና አነስተኛ ነጋዴዎች በተግባር የሚጠቅም መረጃ እንዲያገኙ መርዳት ነው።</p>
 <p class="muted">የአሁኑ ስሪት የሙከራ ነው። መረጃ በዚህ ስልክ ውስጥ ብቻ ይቀመጣል። የቀጥታ የሥራ ማስታወቂያ፣ የክፍያ ስርዓት፣ የደመና ዳታቤዝና AI API አልተገናኙም።</p><span class="pill">Amharic first</span><span class="pill">Mobile friendly</span><span class="pill">Beta 2.0</span></div>
 </section>
-<footer>ETHIO BIZ AI · የሙከራ ስሪት · 2026</footer>
+<section id="merchant" class="panel">
+<div class="card">
+<h2>የነጋዴ ምዝገባ</h2>
+<p class="muted">ንግድህን በETHIO BIZ AI ላይ ለማስመዝገብ መረጃህን ሙላ።</p>
+
+<label>የንግድ ስም</label>
+<input id="merchantBusinessName" placeholder="የንግድ ስም">
+
+<label>የባለቤት ሙሉ ስም</label>
+<input id="merchantOwnerName" placeholder="ሙሉ ስም">
+
+<label>ስልክ ቁጥር</label>
+<input id="merchantPhone" type="tel" placeholder="09XXXXXXXX">
+
+<label>ኢሜይል (ካለ)</label>
+<input id="merchantEmail" type="email" placeholder="example@email.com">
+
+<label>የንግድ ዓይነት</label>
+<input id="merchantBusinessType" placeholder="ለምሳሌ፦ ሱቅ፣ ምግብ ቤት">
+
+<label>አድራሻ</label>
+<input id="merchantAddress" placeholder="ከተማ፣ ክፍለ ከተማ">
+
+<button class="btn" style="width:100%;margin-top:14px" onclick="registerMerchant()">ምዝገባ ላክ</button>
+
+<div id="merchantMsg" class="result hide"></div>
+</div>
+</section>
+  <footer>ETHIO BIZ AI · የሙከራ ስሪት · 2026</footer>
 </main>
 
   <script>
