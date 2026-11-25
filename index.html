@@ -361,7 +361,13 @@ if (merchantForm) {
         body: JSON.stringify(data)
       });
 
-      const result = await response.json();
+      const raw = await response.text();
+let result = {};
+try {
+  result = raw ? JSON.parse(raw) : {};
+} catch {
+  throw new Error('ከServer ትክክለኛ መልስ አልተገኘም።');
+}
 
       if (!response.ok) {
         throw new Error(result.error || 'ምዝገባው አልተሳካም።');
