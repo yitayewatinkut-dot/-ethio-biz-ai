@@ -372,6 +372,9 @@ try {
       if (!response.ok) {
         throw new Error('HTTP ' + response.status + ': ' + (raw || 'Server ባዶ መልስ ሰጥቷል'));
 }
+    if (result.merchant_id) {
+  localStorage.setItem('ethioBizMerchantId', result.merchant_id);
+}
       message.textContent = result.message || 'ምዝገባው ተሳክቷል።';
       merchantForm.reset();
 
