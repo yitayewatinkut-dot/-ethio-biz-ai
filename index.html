@@ -370,8 +370,7 @@ try {
 }
 
       if (!response.ok) {
-        throw new Error(result.error || 'ምዝገባው አልተሳካም።');
-      }
+        throw new Error('HTTP ' + response.status + ': ' + (raw || 'Server ባዶ መልስ ሰጥቷል'));
 
       message.textContent = result.message || 'ምዝገባው ተሳክቷል።';
       merchantForm.reset();
