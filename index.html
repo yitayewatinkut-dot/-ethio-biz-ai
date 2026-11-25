@@ -128,7 +128,9 @@ button:active{transform:scale(.99)}.small{font-size:12px}.hide{display:none!impo
 
     
 const $=id=>document.getElementById(id);
-
+  if (b.dataset.tab === 'merchantDashboard') {
+    loadMerchantDashboard();
+  }
 document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
@@ -357,6 +359,53 @@ if (merchantForm) {
     event.preventDefault();
 
     const button = merchantForm.querySelector('button[type="submit"]');
+ async function loadMerchantDashboard() {
+  const message = $('merchantDashboardMessage');
+  const details = $('merchantDashboardDetails');
+  const merchantId = localStorage.getItem('ethioBizMerchantId');
+
+  details.replaceChildren();
+
+  if (!merchantId) {
+    message.textContent = 'የነጋዴ ID በዚህ ስልክ ላይ አልተገኘም። አዲስ ምዝገባ ካደረግህ በኋላ ይሞክር።';
+    return;
+  }
+
+  message.textContent = 'መረጃው እየተጫነ ነው...';
+
+  try {
+    const response = await fetch(
+      '/api/merchants/profile?id=' + encodeURIComponent(merchantId)
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'መረጃውን ማግኘት አልተቻለም።');
+    }
+
+    message.textContent = data.message || 'የንግድ መረጃህ ተገኝቷል።';
+
+    const rows = [
+      ['የንግድ ስም', data.merchant.business_name],
+      ['የንግድ ዓይነት', data.merchant.business_type || 'አልተገለጸም'],
+      ['የምዝገባ ሁኔታ', data.merchant.status],
+      ['የማረጋገጫ ደረጃ', data.merchant.verification_level]
+    ];
+
+    rows.forEach(([label, value]) => {
+      const p = document.createElement('p');
+      const strong = document.createElement('strong');
+      strong.textContent = label + '፦ ';
+      p.appendChild(strong);
+      p.appendChild(document.createTextNode(String(value || '—')));
+      details.appendChild(p);
+    });
+
+  } catch (error) {
+    message.textContent = 'ስህተት፦ ' + error.message;
+  }
+}  
     const message = document.getElementById('merchantMessage');
 
     button.disabled = true;
