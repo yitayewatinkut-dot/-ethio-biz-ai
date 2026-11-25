@@ -36,6 +36,7 @@ button:active{transform:scale(.99)}.small{font-size:12px}.hide{display:none!impo
 <nav>
 <button class="active" data-tab="profile">መገለጫ</button><button data-tab="ideas">የንግድ ሀሳቦች</button><button data-tab="calc">የትርፍ ማስያ</button><button data-tab="jobs">የሥራ ፍለጋ</button><button data-tab="adviser">AI አማካሪ</button><button data-tab="about">ስለ ፕሮጀክቱ</button>
 <button data-tab="merchant">የነጋዴ ምዝገባ</button>
+<button data-tab="merchantDashboard">የነጋዴ ዳሽቦርድ</button>
 </nav>
 
 <section id="profile" class="panel active">
@@ -80,7 +81,17 @@ button:active{transform:scale(.99)}.small{font-size:12px}.hide{display:none!impo
 <div class="card"><h2>ስለ ETHIO BIZ AI</h2><p>ዓላማው በኢትዮጵያ ያሉ ሥራ ፈላጊዎችና አነስተኛ ነጋዴዎች በተግባር የሚጠቅም መረጃ እንዲያገኙ መርዳት ነው።</p>
 <p class="muted">የአሁኑ ስሪት የሙከራ ነው። መረጃ በዚህ ስልክ ውስጥ ብቻ ይቀመጣል። የቀጥታ የሥራ ማስታወቂያ፣ የክፍያ ስርዓት፣ የደመና ዳታቤዝና AI API አልተገናኙም።</p><span class="pill">Amharic first</span><span class="pill">Mobile friendly</span><span class="pill">Beta 2.0</span></div>
 </section>
-<section id="merchant" class="panel">
+<section id="merchantDashboard" class="panel">
+  <div class="card">
+    <h2>የነጋዴ ዳሽቦርድ</h2>
+    <p class="muted">የንግድህን መረጃና የምዝገባ ሁኔታ ተመልከት።</p>
+    <div id="merchantDashboardMessage" class="result">
+      የነጋዴ መረጃ በመጫን ላይ...
+    </div>
+    <div id="merchantDashboardDetails"></div>
+  </div>
+</section>
+  <section id="merchant" class="panel">
   <div class="card">
     <h2>የነጋዴ ምዝገባ</h2>
     <p>የንግድህን መረጃ አስገባ።</p>
