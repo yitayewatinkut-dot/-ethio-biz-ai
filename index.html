@@ -115,7 +115,40 @@ button:active{transform:scale(.99)}.small{font-size:12px}.hide{display:none!impo
 
     
 const $=id=>document.getElementById(id);
+async function registerMerchant(){
+  const msg = $('merchantMsg');
 
+  const data = {
+    business_name: $('merchantBusinessName').value.trim(),
+    owner_name: $('merchantOwnerName').value.trim(),
+    phone: $('merchantPhone').value.trim(),
+    email: $('merchantEmail').value.trim(),
+    business_type: $('merchantBusinessType').value.trim(),
+    address: $('merchantAddress').value.trim()
+  };
+
+  msg.classList.remove('hide');
+  msg.textContent = 'ምዝገባው እየተላከ ነው...';
+
+  try {
+    const response = await fetch('/api/merchants/register', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'ምዝገባው አልተሳካም።');
+    }
+
+    msg.textContent = 'ምዝገባህ ተቀብሏል። የምዝገባ ቁጥር፦ ' + result.merchant_id;
+
+  } catch(error) {
+    msg.textContent = 'ስህተት፦ ' + error.message;
+  }
+}
 document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
