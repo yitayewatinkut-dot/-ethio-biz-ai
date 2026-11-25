@@ -35,6 +35,7 @@ button:active{transform:scale(.99)}.small{font-size:12px}.hide{display:none!impo
 <section class="welcome"><h1>ሰላም! ወደ ETHIO BIZ AI በደህና መጡ</h1><div class="muted">ለንግድ ሀሳብ፣ ለገቢ እቅድና ለሥራ ፍለጋ የሚረዳ የመጀመሪያ ሙከራ።</div></section>
 <nav>
 <button class="active" data-tab="profile">መገለጫ</button><button data-tab="ideas">የንግድ ሀሳቦች</button><button data-tab="calc">የትርፍ ማስያ</button><button data-tab="jobs">የሥራ ፍለጋ</button><button data-tab="adviser">AI አማካሪ</button><button data-tab="about">ስለ ፕሮጀክቱ</button>
+<button data-tab="merchant">የነጋዴ ምዝገባ</button>
 </nav>
 
 <section id="profile" class="panel active">
@@ -79,7 +80,37 @@ button:active{transform:scale(.99)}.small{font-size:12px}.hide{display:none!impo
 <div class="card"><h2>ስለ ETHIO BIZ AI</h2><p>ዓላማው በኢትዮጵያ ያሉ ሥራ ፈላጊዎችና አነስተኛ ነጋዴዎች በተግባር የሚጠቅም መረጃ እንዲያገኙ መርዳት ነው።</p>
 <p class="muted">የአሁኑ ስሪት የሙከራ ነው። መረጃ በዚህ ስልክ ውስጥ ብቻ ይቀመጣል። የቀጥታ የሥራ ማስታወቂያ፣ የክፍያ ስርዓት፣ የደመና ዳታቤዝና AI API አልተገናኙም።</p><span class="pill">Amharic first</span><span class="pill">Mobile friendly</span><span class="pill">Beta 2.0</span></div>
 </section>
-<footer>ETHIO BIZ AI · የሙከራ ስሪት · 2026</footer>
+<section id="merchant" class="panel">
+  <div class="card">
+    <h2>የነጋዴ ምዝገባ</h2>
+    <p>የንግድህን መረጃ አስገባ።</p>
+
+    <form id="merchantForm">
+      <label>የንግድ ስም</label>
+      <input name="business_name" required>
+
+      <label>የባለቤት ስም</label>
+      <input name="owner_name" required>
+
+      <label>ስልክ ቁጥር</label>
+      <input name="phone" type="tel" required>
+
+      <label>ኢሜይል (ካለ)</label>
+      <input name="email" type="email">
+
+      <label>የንግድ ዓይነት</label>
+      <input name="business_type">
+
+      <label>አድራሻ</label>
+      <input name="address">
+
+      <button class="btn" type="submit">ምዝገባ አድርግ</button>
+    </form>
+
+    <div id="merchantMessage" role="status"></div>
+  </div>
+</section>
+  <footer>ETHIO BIZ AI · የሙከራ ስሪት · 2026</footer>
 </main>
 
   <script>
@@ -308,7 +339,45 @@ async function advise(){
     clearTimeout(timeout);
   }
 }
+const merchantForm = document.getElementById('merchantForm');
 
+if (merchantForm) {
+  merchantForm.addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const button = merchantForm.querySelector('button[type="submit"]');
+    const message = document.getElementById('merchantMessage');
+
+    button.disabled = true;
+    button.textContent = 'በመላክ ላይ...';
+    message.textContent = 'መረጃው እየተላከ ነው...';
+
+    const data = Object.fromEntries(new FormData(merchantForm).entries());
+
+    try {
+      const response = await fetch('/api/merchants/register', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'ምዝገባው አልተሳካም።');
+      }
+
+      message.textContent = result.message || 'ምዝገባው ተሳክቷል።';
+      merchantForm.reset();
+
+    } catch (error) {
+      message.textContent = 'ስህተት፦ ' + error.message;
+    } finally {
+      button.disabled = false;
+      button.textContent = 'ምዝገባ አድርግ';
+    }
+  });
+}
 </script>
 
 </body>
