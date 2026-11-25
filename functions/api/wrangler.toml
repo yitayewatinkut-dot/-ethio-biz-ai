@@ -1,0 +1,7 @@
+name = "ethio-biz-ai"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ethio-biz-ai-db"
+database_id = "33165405-e3fa-4096-98ea-1c77d7985743"
