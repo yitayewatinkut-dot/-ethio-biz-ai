@@ -129,6 +129,24 @@ button:active{transform:scale(.99)}.small{font-size:12px}.hide{display:none!impo
     <div id="merchantEditMessage" class="result"></div>
   </div>
 </section>
+ <section id="merchantLogin" class="panel">
+  <div class="card">
+    <h2>የነጋዴ መግቢያ</h2>
+    <p class="muted">በምዝገባ ጊዜ የተጠቀምክበትን ስልክ ቁጥርና ይለፍ ቃል አስገባ።</p>
+
+    <form id="merchantLoginForm">
+      <label>ስልክ ቁጥር</label>
+      <input name="phone" type="tel" required>
+
+      <label>ይለፍ ቃል</label>
+      <input name="password" type="password" autocomplete="current-password" required>
+
+      <button class="btn" type="submit">ግባ</button>
+    </form>
+
+    <div id="merchantLoginMessage" class="result"></div>
+  </div>
+</section>
   <section id="merchant" class="panel">
   <div class="card">
     <h2>የነጋዴ ምዝገባ</h2>
