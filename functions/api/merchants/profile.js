@@ -24,9 +24,16 @@ export async function onRequestGet({ request, env }) {
     }
 
     const merchant = await env.DB.prepare(`
-      SELECT id, business_name, business_type,
-             status, verification_level
-      FROM merchants
+      SELECT id,
+       business_name,
+       owner_name,
+       phone,
+       email,
+       business_type,
+       address,
+       status,
+       verification_level
+FROM merchants
       WHERE id = ?
       LIMIT 1
     `).bind(id).first();
