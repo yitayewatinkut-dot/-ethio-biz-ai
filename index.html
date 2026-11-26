@@ -437,6 +437,54 @@ $('editAddress').value = m.address || '';
     message.textContent = 'ስህተት፦ ' + error.message;
   }
 }  
+   const merchantEditForm = document.getElementById('merchantEditForm');
+
+if (merchantEditForm) {
+  merchantEditForm.addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const button = merchantEditForm.querySelector('button[type="submit"]');
+    const message = document.getElementById('merchantEditMessage');
+    const merchantId = localStorage.getItem('ethioBizMerchantId');
+
+    button.disabled = true;
+    button.textContent = 'በማሻሻል ላይ...';
+    message.textContent = 'መረጃው እየተላከ ነው...';
+
+    const data = {
+      id: merchantId,
+      business_name: $('editBusinessName').value.trim(),
+      owner_name: $('editOwnerName').value.trim(),
+      phone: $('editPhone').value.trim(),
+      email: $('editEmail').value.trim(),
+      business_type: $('editBusinessType').value.trim(),
+      address: $('editAddress').value.trim()
+    };
+
+    try {
+      const response = await fetch('/api/merchants/update', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'መረጃውን ማሻሻል አልተቻለም።');
+      }
+
+      message.textContent = result.message || 'መረጃው ተሻሽሏል።';
+      await loadMerchantDashboard();
+
+    } catch (error) {
+      message.textContent = 'ስህተት፦ ' + error.message;
+    } finally {
+      button.disabled = false;
+      button.textContent = 'መረጃውን አሻሽል';
+    }
+  });
+}
     const merchantForm = document.getElementById('merchantForm');
 
 if (merchantForm) {
