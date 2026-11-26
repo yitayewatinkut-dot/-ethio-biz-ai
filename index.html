@@ -407,7 +407,14 @@ async function loadMerchantDashboard() {
     if (!response.ok) {
       throw new Error(data.error || 'መረጃውን ማግኘት አልተቻለም።');
     }
+const m = data.merchant;
 
+$('editBusinessName').value = m.business_name || '';
+$('editOwnerName').value = m.owner_name || '';
+$('editPhone').value = m.phone || '';
+$('editEmail').value = m.email || '';
+$('editBusinessType').value = m.business_type || '';
+$('editAddress').value = m.address || '';
     message.textContent = data.message || 'የንግድ መረጃህ ተገኝቷል።';
 
     const rows = [
