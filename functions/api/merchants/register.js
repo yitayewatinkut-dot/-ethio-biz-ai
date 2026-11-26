@@ -20,6 +20,7 @@ export async function onRequestPost({ request, env }) {
     const email = String(data.email || "").trim().toLowerCase();
     const business_type = String(data.business_type || "").trim();
     const address = String(data.address || "").trim();
+    const password = String(data.password || "");
 
     if (!business_name || !owner_name || !phone) {
       return reply({
@@ -35,31 +36,70 @@ export async function onRequestPost({ request, env }) {
       return reply({ error: "ኢሜይሉ ትክክል አይደለም።" }, 400);
     }
 
+    if (password.length < 8) {
+      return reply({
+        error: "ይለፍ ቃሉ ቢያንስ 8 ፊደላት ወይም ቁጥሮች መሆን አለበት።"
+      }, 400);
+    }
+
     const id = crypto.randomUUID();
 
-    await env.DB.prepare(`
-      INSERT INTO merchants (
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(password),
+      "PBKDF2",
+      false,
+      ["deriveBits"]
+    );
+
+    const hashBuffer = await crypto.subtle.deriveBits(
+      {
+        name: "PBKDF2",
+        salt,
+        iterations: 310000,
+        hash: "SHA-256"
+      },
+      key,
+      256
+    );
+
+    const toBase64 = bytes => {
+      let binary = "";
+      for (const byte of bytes) {
+        binary += String.fromCharCode(byte);
+      }
+      return btoa(binary);
+    };
+
+    const password_hash = toBase64(new Uint8Array(hashBuffer));
+    const password_salt = toBase64(salt);
+
+    await env.DB.batch([
+      env.DB.prepare(`
+        INSERT INTO merchants (
+          id, business_name, owner_name, phone, email,
+          business_type, address, verification_level, status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).bind(
         id,
         business_name,
         owner_name,
         phone,
-        email,
-        business_type,
-        address,
-        verification_level,
-        status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).bind(
-      id,
-      business_name,
-      owner_name,
-      phone,
-      email || null,
-      business_type || null,
-      address || null,
-      "basic",
-      "pending"
-    ).run();
+        email || null,
+        business_type || null,
+        address || null,
+        "basic",
+        "pending"
+      ),
+
+      env.DB.prepare(`
+        INSERT INTO merchant_auth (
+          merchant_id, password_hash, password_salt
+        ) VALUES (?, ?, ?)
+      `).bind(id, password_hash, password_salt)
+    ]);
 
     return reply({
       success: true,
@@ -72,7 +112,7 @@ export async function onRequestPost({ request, env }) {
   } catch (error) {
     if (error.message && error.message.includes("UNIQUE")) {
       return reply({
-        error: "ይህ ስልክ ቁጥር አስቀድሞ ተመዝግቧል።"
+        error: "ይህ ስልክ ቁጥር ወይም መለያ አስቀድሞ ተመዝግቧል።"
       }, 409);
     }
 
