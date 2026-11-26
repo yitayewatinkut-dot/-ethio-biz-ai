@@ -84,11 +84,41 @@ button:active{transform:scale(.99)}.small{font-size:12px}.hide{display:none!impo
 <section id="merchantDashboard" class="panel">
   <div class="card">
     <h2>የነጋዴ ዳሽቦርድ</h2>
-    <p class="muted">የንግድህን መረጃና የምዝገባ ሁኔታ ተመልከት።</p>
+    <p class="muted">የንግድህን መረጃ ተመልከትና አስተካክል።</p>
+
     <div id="merchantDashboardMessage" class="result">
       የነጋዴ መረጃ በመጫን ላይ...
     </div>
+
     <div id="merchantDashboardDetails"></div>
+
+    <hr>
+
+    <h3>የንግድ መረጃ ማሻሻያ</h3>
+
+    <form id="merchantEditForm">
+      <label>የንግድ ስም</label>
+      <input id="editBusinessName" required>
+
+      <label>የባለቤት ስም</label>
+      <input id="editOwnerName" required>
+
+      <label>ስልክ ቁጥር</label>
+      <input id="editPhone" required>
+
+      <label>ኢሜይል</label>
+      <input id="editEmail" type="email">
+
+      <label>የንግድ ዓይነት</label>
+      <input id="editBusinessType">
+
+      <label>አድራሻ</label>
+      <input id="editAddress">
+
+      <button type="submit">መረጃውን አሻሽል</button>
+    </form>
+
+    <div id="merchantEditMessage" class="result"></div>
   </div>
 </section>
   <section id="merchant" class="panel">
