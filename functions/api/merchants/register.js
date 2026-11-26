@@ -58,7 +58,7 @@ export async function onRequestPost({ request, env }) {
       {
         name: "PBKDF2",
         salt,
-        iterations: 100000
+        iterations: 100000,
         hash: "SHA-256"
       },
       key,
