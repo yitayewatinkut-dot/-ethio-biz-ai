@@ -94,7 +94,55 @@ button:active{transform:scale(.99)}.small{font-size:12px}.hide{display:none!impo
     </div>
 
     <div id="merchantDashboardDetails"></div>
+<hr>
 
+<h3>የሽያጭና ወጪ መከታተያ</h3>
+
+<form id="merchantTransactionForm">
+
+  <label>የመዝገቡ ዓይነት</label>
+  <select id="transactionType" required>
+    <option value="sale">ሽያጭ</option>
+    <option value="expense">ወጪ</option>
+  </select>
+
+  <label>የገንዘብ መጠን (ብር)</label>
+  <input
+    id="transactionAmount"
+    type="number"
+    min="0.01"
+    step="0.01"
+    required
+  >
+
+  <label>የመዝገቡ ቀን</label>
+  <input
+    id="transactionDate"
+    type="date"
+    required
+  >
+
+  <label>መግለጫ</label>
+  <input
+    id="transactionDescription"
+    type="text"
+    maxlength="250"
+    placeholder="ለምሳሌ፦ የዕቃ ሽያጭ"
+  >
+
+  <button type="submit" class="btn">
+    መዝግብ
+  </button>
+
+</form>
+
+<div id="transactionMessage" class="result"></div>
+
+<h3>የሽያጭና ወጪ ታሪክ</h3>
+
+<div id="transactionSummary"></div>
+
+<div id="transactionList"></div>
     <hr>
 
     <h3>የንግድ መረጃ ማሻሻያ</h3>
@@ -492,7 +540,7 @@ $('editAddress').value = m.address || '';
       p.appendChild(document.createTextNode(String(value || '—')));
       details.appendChild(p);
     });
-
+await loadMerchantTransactions();
   } catch (error) {
     message.textContent = 'ስህተት፦ ' + error.message;
   }
