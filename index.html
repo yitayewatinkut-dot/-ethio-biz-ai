@@ -86,7 +86,9 @@ button:active{transform:scale(.99)}.small{font-size:12px}.hide{display:none!impo
   <div class="card">
     <h2>የነጋዴ ዳሽቦርድ</h2>
     <p class="muted">የንግድህን መረጃ ተመልከትና አስተካክል።</p>
-
+<button type="button" class="btn" id="merchantLogoutButton">
+  ከመለያዬ ውጣ
+</button>
     <div id="merchantDashboardMessage" class="result">
       የነጋዴ መረጃ በመጫን ላይ...
     </div>
@@ -561,7 +563,49 @@ if (merchantLoginForm) {
     }
   });
 }
-    
+    const merchantLogoutButton = document.getElementById('merchantLogoutButton');
+
+if (merchantLogoutButton) {
+  merchantLogoutButton.addEventListener('click', async function() {
+    const token = sessionStorage.getItem('ethioBizMerchantToken');
+    const message = document.getElementById('merchantDashboardMessage');
+
+    if (!token) {
+      message.textContent = 'መጀመሪያ ወደ መለያህ ግባ።';
+      return;
+    }
+
+    merchantLogoutButton.disabled = true;
+    merchantLogoutButton.textContent = 'በመውጣት ላይ...';
+
+    try {
+      const response = await fetch('/api/merchants/logout', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + token
+        }
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'መውጣት አልተቻለም።');
+      }
+
+      sessionStorage.removeItem('ethioBizMerchantToken');
+      sessionStorage.removeItem('ethioBizMerchantId');
+
+      document.getElementById('merchantDashboardDetails').replaceChildren();
+      message.textContent = result.message || 'ከመለያህ ወጥተሃል።';
+
+    } catch (error) {
+      message.textContent = 'ስህተት፦ ' + error.message;
+    } finally {
+      merchantLogoutButton.disabled = false;
+      merchantLogoutButton.textContent = 'ከመለያዬ ውጣ';
+    }
+  });
+}
 if (merchantForm) {
   merchantForm.addEventListener('submit', async function(event) {
     event.preventDefault();
