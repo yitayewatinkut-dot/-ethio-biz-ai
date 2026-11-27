@@ -19,7 +19,33 @@ nav button{background:white;color:var(--green);border:1px solid var(--line)}nav 
 h2{font-size:18px;margin:0 0 12px}h3{font-size:15px;margin:0 0 6px}
 label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}
 input,select,textarea{width:100%;padding:12px;border:1px solid #ccd8d1;border-radius:10px;background:#fff;font:inherit;font-size:14px;color:var(--ink)}
-textarea{min-height:90px;resize:vertical}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#merchantTransactionForm {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+#merchantTransactionForm label {
+  display: block;
+  margin-bottom: -6px;
+  font-weight: 600;
+}
+
+#merchantTransactionForm input,
+#merchantTransactionForm select {
+  display: block;
+  width: 100%;
+  min-height: 46px;
+  box-sizing: border-box;
+}
+
+#merchantTransactionForm button {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 8px;
+}
+  textarea{min-height:90px;resize:vertical}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .result{background:#edf6f0;border-radius:12px;padding:13px;margin-top:12px;line-height:1.7}
 .pill{display:inline-block;border-radius:30px;padding:4px 9px;background:#edf6f0;color:var(--green);font-size:11px;font-weight:700;margin:3px 3px 3px 0}
 .idea{border-top:1px solid var(--line);padding:13px 0}.idea:first-of-type{border-top:0}
