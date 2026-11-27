@@ -545,7 +545,121 @@ await loadMerchantTransactions();
     message.textContent = 'ስህተት፦ ' + error.message;
   }
 }  
-   const merchantEditForm = document.getElementById('merchantEditForm');
+  async function loadMerchantTransactions() {
+  const token = sessionStorage.getItem('ethioBizMerchantToken');
+  const message = $('transactionMessage');
+  const summary = $('transactionSummary');
+  const list = $('transactionList');
+
+  if (!token) {
+    message.textContent = 'መጀመሪያ ወደ መለያህ ግባ።';
+    return;
+  }
+
+  message.textContent = 'መዝገቦች እየተጫኑ ነው...';
+  summary.replaceChildren();
+  list.replaceChildren();
+
+  try {
+    const response = await fetch('/api/merchants/transactions', {
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'መዝገቦችን ማግኘት አልተቻለም።');
+    }
+
+    let sales = 0;
+    let expenses = 0;
+
+    data.transactions.forEach(item => {
+      if (item.transaction_type === 'sale') {
+        sales += Number(item.amount);
+      } else if (item.transaction_type === 'expense') {
+        expenses += Number(item.amount);
+      }
+    });
+
+    const net = sales - expenses;
+
+    summary.textContent =
+      'ጠቅላላ ሽያጭ፦ ' + sales.toFixed(2) + ' ብር | ' +
+      'ጠቅላላ ወጪ፦ ' + expenses.toFixed(2) + ' ብር | ' +
+      'ልዩነት፦ ' + net.toFixed(2) + ' ብር';
+
+    data.transactions.forEach(item => {
+      const p = document.createElement('p');
+      p.textContent =
+        (item.transaction_type === 'sale' ? 'ሽያጭ' : 'ወጪ') +
+        ' — ' + Number(item.amount).toFixed(2) + ' ብር — ' +
+        item.transaction_date + ' — ' +
+        (item.description || 'መግለጫ የለም');
+      list.appendChild(p);
+    });
+
+    message.textContent = 'መዝገቦቹ ተጭነዋል።';
+
+  } catch (error) {
+    message.textContent = 'ስህተት፦ ' + error.message;
+  }
+}
+    const transactionForm = document.getElementById('merchantTransactionForm');
+
+if (transactionForm) {
+  transactionForm.addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const token = sessionStorage.getItem('ethioBizMerchantToken');
+    const message = $('transactionMessage');
+    const button = transactionForm.querySelector('button[type="submit"]');
+
+    if (!token) {
+      message.textContent = 'መጀመሪያ ወደ መለያህ ግባ።';
+      return;
+    }
+
+    button.disabled = true;
+    message.textContent = 'መዝገቡ እየተቀመጠ ነው...';
+
+    const data = {
+      transaction_type: $('transactionType').value,
+      amount: $('transactionAmount').value,
+      transaction_date: $('transactionDate').value,
+      description: $('transactionDescription').value.trim()
+    };
+
+    try {
+      const response = await fetch('/api/merchants/transactions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'መዝገቡን ማስቀመጥ አልተቻለም።');
+      }
+
+      message.textContent = result.message;
+      transactionForm.reset();
+      await loadMerchantTransactions();
+
+    } catch (error) {
+      message.textContent = 'ስህተት፦ ' + error.message;
+    } finally {
+      button.disabled = false;
+    }
+  });
+}
+    const merchantEditForm = document.getElementById('merchantEditForm');
 
 if (merchantEditForm) {
   merchantEditForm.addEventListener('submit', async function(event) {
