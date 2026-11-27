@@ -418,10 +418,19 @@ async function loadMerchantDashboard() {
 
   details.replaceChildren();
 
-  if (!token) {
+const editForm = $('merchantEditForm');
+const logoutButton = $('merchantLogoutButton');
+
+if (!token) {
+  if (editForm) editForm.hidden = true;
+  if (logoutButton) logoutButton.hidden = true;
+
   message.textContent = 'እባክህ መጀመሪያ ወደ ነጋዴ መለያህ ግባ።';
   return;
 }
+
+if (editForm) editForm.hidden = false;
+if (logoutButton) logoutButton.hidden = false;
 
   message.textContent = 'መረጃው እየተጫነ ነው...';
 
