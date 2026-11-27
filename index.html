@@ -634,12 +634,49 @@ await loadMerchantTransactions();
         (item.description || 'መግለጫ የለም');
       list.appendChild(p);
     });
+    const monthInput = $('transactionReportMonth');
+    const monthlyReport = $('transactionMonthlyReport');
 
+    if (monthInput && monthlyReport) {
+      if (!monthInput.value) {
+        monthInput.value = new Date().toISOString().slice(0, 7);
+      }
+
+      const selectedMonth = monthInput.value;
+
+      const monthlyTransactions = data.transactions.filter(item =>
+        item.transaction_date.startsWith(selectedMonth)
+      );
+
+      let monthlySales = 0;
+      let monthlyExpenses = 0;
+
+      monthlyTransactions.forEach(item => {
+        if (item.transaction_type === 'sale') {
+          monthlySales += Number(item.amount);
+        } else if (item.transaction_type === 'expense') {
+          monthlyExpenses += Number(item.amount);
+        }
+      });
+
+      monthlyReport.textContent =
+        'የወሩ ሽያጭ፦ ' + monthlySales.toFixed(2) + ' ብር | ' +
+        'የወሩ ወጪ፦ ' + monthlyExpenses.toFixed(2) + ' ብር | ' +
+        'ልዩነት፦ ' +
+        (monthlySales - monthlyExpenses).toFixed(2) + ' ብር';
+    }
     message.textContent = 'መዝገቦቹ ተጭነዋል።';
 
   } catch (error) {
     message.textContent = 'ስህተት፦ ' + error.message;
   }
+}
+    const reportMonthInput = document.getElementById('transactionReportMonth');
+
+if (reportMonthInput) {
+  reportMonthInput.addEventListener('change', function() {
+    loadMerchantTransactions();
+  });
 }
     const transactionForm = document.getElementById('merchantTransactionForm');
 
