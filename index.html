@@ -419,21 +419,23 @@ async function advise(){
 async function loadMerchantDashboard() {
   const message = $('merchantDashboardMessage');
   const details = $('merchantDashboardDetails');
-  const merchantId = localStorage.getItem('ethioBizMerchantId');
+  const token = sessionStorage.getItem('ethioBizMerchantToken');
 
   details.replaceChildren();
 
-  if (!merchantId) {
-    message.textContent = 'የነጋዴ ID በዚህ ስልክ ላይ አልተገኘም። አዲስ ምዝገባ ካደረግህ በኋላ ይሞክር።';
-    return;
-  }
+  if (!token) {
+  message.textContent = 'እባክህ መጀመሪያ ወደ ነጋዴ መለያህ ግባ።';
+  return;
+}
 
   message.textContent = 'መረጃው እየተጫነ ነው...';
 
   try {
-    const response = await fetch(
-      '/api/merchants/profile?id=' + encodeURIComponent(merchantId)
-    );
+    const response = await fetch('/api/merchants/profile', {
+  headers: {
+    'Authorization': 'Bearer ' + token
+  }
+});
 
     const data = await response.json();
 
@@ -485,8 +487,7 @@ if (merchantEditForm) {
     message.textContent = 'መረጃው እየተላከ ነው...';
 
     const data = {
-      id: merchantId,
-      business_name: $('editBusinessName').value.trim(),
+  business_name: $('editBusinessName').value.trim(),
       owner_name: $('editOwnerName').value.trim(),
       phone: $('editPhone').value.trim(),
       email: $('editEmail').value.trim(),
@@ -560,7 +561,12 @@ if (merchantLoginForm) {
     }
   });
 }
-    const merchantForm = document.getElementById('merchantForm');
+    const token = sessionStorage.getItem('ethioBizMerchantToken');
+
+if (!token) {
+  message.textContent = 'እባክህ መጀመሪያ ወደ ነጋዴ መለያህ ግባ።';
+  return;
+}
 
 if (merchantForm) {
   merchantForm.addEventListener('submit', async function(event) {
