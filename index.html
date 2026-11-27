@@ -480,8 +480,12 @@ if (merchantEditForm) {
 
     const button = merchantEditForm.querySelector('button[type="submit"]');
     const message = document.getElementById('merchantEditMessage');
-    const merchantId = localStorage.getItem('ethioBizMerchantId');
+    const token = sessionStorage.getItem('ethioBizMerchantToken');
 
+if (!token) {
+  message.textContent = 'እባክህ መጀመሪያ ወደ ነጋዴ መለያህ ግባ።';
+  return;
+}
     button.disabled = true;
     button.textContent = 'በማሻሻል ላይ...';
     message.textContent = 'መረጃው እየተላከ ነው...';
@@ -561,13 +565,7 @@ if (merchantLoginForm) {
     }
   });
 }
-    const token = sessionStorage.getItem('ethioBizMerchantToken');
-
-if (!token) {
-  message.textContent = 'እባክህ መጀመሪያ ወደ ነጋዴ መለያህ ግባ።';
-  return;
-}
-
+    
 if (merchantForm) {
   merchantForm.addEventListener('submit', async function(event) {
     event.preventDefault();
