@@ -561,7 +561,7 @@ if (merchantLoginForm) {
 
       sessionStorage.setItem('ethioBizMerchantToken', result.token);
       sessionStorage.setItem('ethioBizMerchantId', result.merchant_id);
-
+sessionStorage.setItem('ethioBizMerchantExpiresAt', result.expires_at);
       message.textContent = result.message || 'በተሳካ ሁኔታ ገብተሃል።';
 
     } catch (error) {
@@ -576,7 +576,17 @@ if (merchantLoginForm) {
 
 if (merchantLogoutButton) {
   merchantLogoutButton.addEventListener('click', async function() {
-    const token = sessionStorage.getItem('ethioBizMerchantToken');
+    let token = sessionStorage.getItem('ethioBizMerchantToken');
+const expiresAt = Number(
+  sessionStorage.getItem('ethioBizMerchantExpiresAt')
+);
+
+if (!token || !expiresAt || Date.now() >= expiresAt * 1000) {
+  sessionStorage.removeItem('ethioBizMerchantToken');
+  sessionStorage.removeItem('ethioBizMerchantId');
+  sessionStorage.removeItem('ethioBizMerchantExpiresAt');
+  token = '';
+}
     const message = document.getElementById('merchantDashboardMessage');
 
     if (!token) {
@@ -601,9 +611,9 @@ if (merchantLogoutButton) {
         throw new Error(result.error || 'መውጣት አልተቻለም።');
       }
 
-      sessionStorage.removeItem('ethioBizMerchantToken');
-      sessionStorage.removeItem('ethioBizMerchantId');
-
+     sessionStorage.removeItem('ethioBizMerchantToken');
+     sessionStorage.removeItem('ethioBizMerchantId');
+     sessionStorage.removeItem('ethioBizMerchantExpiresAt');
       document.getElementById('merchantDashboardDetails').replaceChildren();
       message.textContent = result.message || 'ከመለያህ ወጥተሃል።';
 
