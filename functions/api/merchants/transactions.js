@@ -78,6 +78,20 @@ export async function onRequestPost({ request, env }) {
 
     const type = data.transaction_type;
     const amount = Number(data.amount);
+    const cashReceived = Number(body.cash_received ?? amount);
+const costOfGoods = Number(body.cost_of_goods ?? 0);
+
+if (
+  !Number.isFinite(cashReceived) ||
+  cashReceived < 0 ||
+  cashReceived > amount
+) {
+  return json({ error: 'የተቀበለው ገንዘብ ከሽያጩ መጠን መብለጥ የለበትም።' }, 400);
+}
+
+if (!Number.isFinite(costOfGoods) || costOfGoods < 0) {
+  return json({ error: 'የዕቃ ግዢ ወጪ ትክክለኛ መሆን አለበት።' }, 400);
+}
     const description = String(data.description || "").trim();
     const date = String(data.transaction_date || "");
 
@@ -98,19 +112,30 @@ export async function onRequestPost({ request, env }) {
       return reply({ error: "ትክክለኛ ቀን ያስገቡ።" }, 400);
     }
 
-    const id = crypto.randomUUID();
+        const id = crypto.randomUUID();
 
     await env.DB.prepare(`
       INSERT INTO merchant_transactions
-      (id, merchant_id, transaction_type, amount, description, transaction_date)
-      VALUES (?, ?, ?, ?, ?, ?)
+      (
+        id,
+        merchant_id,
+        transaction_type,
+        amount,
+        description,
+        transaction_date,
+        cash_received,
+        cost_of_goods
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       id,
       session.merchant_id,
       type,
       amount,
       description,
-      date
+      date,
+      type === 'sale' ? cashReceived : 0,
+      type === 'sale' ? costOfGoods : 0
     ).run();
 
     return reply({
