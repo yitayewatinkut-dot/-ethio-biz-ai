@@ -713,12 +713,13 @@ if (transactionForm) {
     message.textContent = 'መዝገቡ እየተቀመጠ ነው...';
 
     const data = {
-      transaction_type: $('transactionType').value,
-      amount: $('transactionAmount').value,
-      transaction_date: $('transactionDate').value,
-      description: $('transactionDescription').value.trim()
-    };
-
+  transaction_type: $('transactionType').value,
+  amount: $('transactionAmount').value,
+  cash_received: $('transactionCashReceived').value || 0,
+  cost_of_goods: $('transactionCostOfGoods').value || 0,
+  transaction_date: $('transactionDate').value,
+  description: $('transactionDescription').value.trim()
+};
     try {
       const response = await fetch('/api/merchants/transactions', {
         method: 'POST',
