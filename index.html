@@ -1,4 +1,4 @@
-<!doctype html>
+ሠ<!doctype html>
 <html lang="am">
 <head>
 <meta charset="utf-8">
@@ -414,8 +414,29 @@ async function advise(){
 async function loadMerchantDashboard() {
   const message = $('merchantDashboardMessage');
   const details = $('merchantDashboardDetails');
-  const token = sessionStorage.getItem('ethioBizMerchantToken');
+  let token = sessionStorage.getItem('ethioBizMerchantToken');
 
+const expiresAt = Number(
+  sessionStorage.getItem('ethioBizMerchantExpiresAt')
+);
+
+if (!token || !expiresAt || Date.now() >= expiresAt * 1000) {
+  sessionStorage.removeItem('ethioBizMerchantToken');
+  sessionStorage.removeItem('ethioBizMerchantId');
+  sessionStorage.removeItem('ethioBizMerchantExpiresAt');
+  token = '';
+}
+
+if (token && expiresAt) {
+  const remainingTime = (expiresAt * 1000) - Date.now();
+
+  setTimeout(() => {
+    sessionStorage.removeItem('ethioBizMerchantToken');
+    sessionStorage.removeItem('ethioBizMerchantId');
+    sessionStorage.removeItem('ethioBizMerchantExpiresAt');
+    window.location.reload();
+  }, remainingTime);
+}
   details.replaceChildren();
 
 const editForm = $('merchantEditForm');
@@ -576,17 +597,7 @@ sessionStorage.setItem('ethioBizMerchantExpiresAt', result.expires_at);
 
 if (merchantLogoutButton) {
   merchantLogoutButton.addEventListener('click', async function() {
-    let token = sessionStorage.getItem('ethioBizMerchantToken');
-const expiresAt = Number(
-  sessionStorage.getItem('ethioBizMerchantExpiresAt')
-);
-
-if (!token || !expiresAt || Date.now() >= expiresAt * 1000) {
-  sessionStorage.removeItem('ethioBizMerchantToken');
-  sessionStorage.removeItem('ethioBizMerchantId');
-  sessionStorage.removeItem('ethioBizMerchantExpiresAt');
-  token = '';
-}
+ const token = sessionStorage.getItem('ethioBizMerchantToken');
     const message = document.getElementById('merchantDashboardMessage');
 
     if (!token) {
