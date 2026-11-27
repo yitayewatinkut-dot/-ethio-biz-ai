@@ -518,6 +518,48 @@ if (merchantEditForm) {
     }
   });
 }
+   const merchantLoginForm = document.getElementById('merchantLoginForm');
+
+if (merchantLoginForm) {
+  merchantLoginForm.addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const button = merchantLoginForm.querySelector('button[type="submit"]');
+    const message = document.getElementById('merchantLoginMessage');
+    const data = Object.fromEntries(
+      new FormData(merchantLoginForm).entries()
+    );
+
+    button.disabled = true;
+    button.textContent = 'በመግባት ላይ...';
+    message.textContent = 'መረጃው እየተረጋገጠ ነው...';
+
+    try {
+      const response = await fetch('/api/merchants/login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'መግባት አልተቻለም።');
+      }
+
+      sessionStorage.setItem('ethioBizMerchantToken', result.token);
+      sessionStorage.setItem('ethioBizMerchantId', result.merchant_id);
+
+      message.textContent = result.message || 'በተሳካ ሁኔታ ገብተሃል።';
+
+    } catch (error) {
+      message.textContent = 'ስህተት፦ ' + error.message;
+    } finally {
+      button.disabled = false;
+      button.textContent = 'ግባ';
+    }
+  });
+}
     const merchantForm = document.getElementById('merchantForm');
 
 if (merchantForm) {
