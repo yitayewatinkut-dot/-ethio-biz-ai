@@ -623,10 +623,14 @@ if (merchantLogoutButton) {
       }
 
      sessionStorage.removeItem('ethioBizMerchantToken');
-     sessionStorage.removeItem('ethioBizMerchantId');
-     sessionStorage.removeItem('ethioBizMerchantExpiresAt');
-      document.getElementById('merchantDashboardDetails').replaceChildren();
-      message.textContent = result.message || 'ከመለያህ ወጥተሃል።';
+sessionStorage.removeItem('ethioBizMerchantId');
+sessionStorage.removeItem('ethioBizMerchantExpiresAt');
+
+document.getElementById('merchantDashboardDetails').replaceChildren();
+document.getElementById('merchantEditForm').hidden = true;
+document.getElementById('merchantLogoutButton').hidden = true;
+
+message.textContent = result.message || 'ከመለያህ ወጥተሃል።';
 
     } catch (error) {
       message.textContent = 'ስህተት፦ ' + error.message;
