@@ -643,11 +643,15 @@ await loadMerchantTransactions();
 
     data.transactions.forEach(item => {
       const p = document.createElement('p');
-      p.textContent =
-        (item.transaction_type === 'sale' ? 'ሽያጭ' : 'ወጪ') +
-        ' — ' + Number(item.amount).toFixed(2) + ' ብር — ' +
-        item.transaction_date + ' — ' +
-        (item.description || 'መግለጫ የለም');
+  p.textContent =
+  (item.transaction_type === 'sale' ? 'ሽያጭ' : 'ወጪ') +
+  ' — መጠን፦ ' + Number(item.amount).toFixed(2) + ' ብር' +
+  (item.transaction_type === 'sale'
+    ? ' — ጥሬ ገንዘብ፦ ' + Number(item.cash_received || 0).toFixed(2) +
+      ' ብር — የዕቃ ግዢ፦ ' + Number(item.cost_of_goods || 0).toFixed(2) + ' ብር'
+    : '') +
+  ' — ' + item.transaction_date + ' — ' +
+  (item.description || 'መግለጫ የለም');
       list.appendChild(p);
     });
     const monthInput = $('transactionReportMonth');
