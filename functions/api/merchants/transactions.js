@@ -78,19 +78,18 @@ export async function onRequestPost({ request, env }) {
 
     const type = data.transaction_type;
     const amount = Number(data.amount);
-    const cashReceived = Number(body.cash_received ?? amount);
-const costOfGoods = Number(body.cost_of_goods ?? 0);
-
+    const cashReceived = Number(data.cash_received ?? amount);
+const costOfGoods = Number(data.cost_of_goods ?? 0);
 if (
   !Number.isFinite(cashReceived) ||
   cashReceived < 0 ||
   cashReceived > amount
 ) {
-  return json({ error: 'የተቀበለው ገንዘብ ከሽያጩ መጠን መብለጥ የለበትም።' }, 400);
+  return reply({ error: 'የተቀበለው ገንዘብ ከሽያጩ መጠን መብለጥ የለበትም።' }, 400);
 }
 
 if (!Number.isFinite(costOfGoods) || costOfGoods < 0) {
-  return json({ error: 'የዕቃ ግዢ ወጪ ትክክለኛ መሆን አለበት።' }, 400);
+  return reply({ error: 'የዕቃ ግዢ ወጪ ትክክለኛ መሆን አለበት።' }, 400);
 }
     const description = String(data.description || "").trim();
     const date = String(data.transaction_date || "");
