@@ -624,22 +624,29 @@ await loadMerchantTransactions();
     }
 
     let sales = 0;
-    let expenses = 0;
+let cashCollected = 0;
+let costOfGoods = 0;
+let expenses = 0;
 
     data.transactions.forEach(item => {
       if (item.transaction_type === 'sale') {
-        sales += Number(item.amount);
-      } else if (item.transaction_type === 'expense') {
-        expenses += Number(item.amount);
-      }
-    });
-
-    const net = sales - expenses;
+  sales += Number(item.amount);
+  cashCollected += Number(item.cash_received || 0);
+  costOfGoods += Number(item.cost_of_goods || 0);
+} else if (item.transaction_type === 'expense') {
+  expenses += Number(item.amount);
+}
+});
+    const grossProfit = sales - costOfGoods;
+const net = grossProfit - expenses;
 
     summary.textContent =
-      'ጠቅላላ ሽያጭ፦ ' + sales.toFixed(2) + ' ብር | ' +
-      'ጠቅላላ ወጪ፦ ' + expenses.toFixed(2) + ' ብር | ' +
-      'ልዩነት፦ ' + net.toFixed(2) + ' ብር';
+  'ጠቅላላ ሽያጭ፦ ' + sales.toFixed(2) + ' ብር | ' +
+  'የተቀበለ ጥሬ ገንዘብ፦ ' + cashCollected.toFixed(2) + ' ብር | ' +
+  'የዕቃ ግዢ ወጪ፦ ' + costOfGoods.toFixed(2) + ' ብር | ' +
+  'ሌሎች ወጪዎች፦ ' + expenses.toFixed(2) + ' ብር | ' +
+  'ጠቅላላ ትርፍ፦ ' + grossProfit.toFixed(2) + ' ብር | ' +
+  'የተጣራ ትርፍ፦ ' + net.toFixed(2) + ' ብር';
 
     data.transactions.forEach(item => {
       const p = document.createElement('p');
@@ -669,25 +676,103 @@ await loadMerchantTransactions();
       );
 
       let monthlySales = 0;
-      let monthlyExpenses = 0;
-
+let monthlyCashCollected = 0;
+let monthlyCostOfGoods = 0;
+let monthlyExpenses = 0;
       monthlyTransactions.forEach(item => {
         if (item.transaction_type === 'sale') {
-          monthlySales += Number(item.amount);
-        } else if (item.transaction_type === 'expense') {
-          monthlyExpenses += Number(item.amount);
-        }
-      });
+  monthlySales += Number(item.amount);
+  monthlyCashCollected += Number(item.cash_received || 0);
+  monthlyCostOfGoods += Number(item.cost_of_goods || 0);
+} else if (item.transaction_type === 'expense') {
+  monthlyExpenses += Number(item.amount);
+}
+});
+        const data = await response.json();
 
-      monthlyReport.textContent =
-        'የወሩ ሽያጭ፦ ' + monthlySales.toFixed(2) + ' ብር | ' +
-        'የወሩ ወጪ፦ ' + monthlyExpenses.toFixed(2) + ' ብር | ' +
-        'ልዩነት፦ ' +
-        (monthlySales - monthlyExpenses).toFixed(2) + ' ብር';
+    if (!response.ok) {
+      throw new Error(data.error || 'መዝገቦችን ማግኘት አልተቻለም።');
     }
-    message.textContent = 'መዝገቦቹ ተጭነዋል።';
 
-  } catch (error) {
+    let sales = 0;
+let cashCollected = 0;
+let costOfGoods = 0;
+let expenses = 0;
+
+    data.transactions.forEach(item => {
+      if (item.transaction_type === 'sale') {
+  sales += Number(item.amount);
+  cashCollected += Number(item.cash_received || 0);
+  costOfGoods += Number(item.cost_of_goods || 0);
+} else if (item.transaction_type === 'expense') {
+  expenses += Number(item.amount);
+}
+
+    const grossProfit = sales - costOfGoods;
+const net = grossProfit - expenses;
+
+    summary.textContent =
+  'ጠቅላላ ሽያጭ፦ ' + sales.toFixed(2) + ' ብር | ' +
+  'የተቀበለ ጥሬ ገንዘብ፦ ' + cashCollected.toFixed(2) + ' ብር | ' +
+  'የዕቃ ግዢ ወጪ፦ ' + costOfGoods.toFixed(2) + ' ብር | ' +
+  'ሌሎች ወጪዎች፦ ' + expenses.toFixed(2) + ' ብር | ' +
+  'ጠቅላላ ትርፍ፦ ' + grossProfit.toFixed(2) + ' ብር | ' +
+  'የተጣራ ትርፍ፦ ' + net.toFixed(2) + ' ብር';
+
+    data.transactions.forEach(item => {
+      const p = document.createElement('p');
+  p.textContent =
+  (item.transaction_type === 'sale' ? 'ሽያጭ' : 'ወጪ') +
+  ' — መጠን፦ ' + Number(item.amount).toFixed(2) + ' ብር' +
+  (item.transaction_type === 'sale'
+    ? ' — ጥሬ ገንዘብ፦ ' + Number(item.cash_received || 0).toFixed(2) +
+      ' ብር — የዕቃ ግዢ፦ ' + Number(item.cost_of_goods || 0).toFixed(2) + ' ብር'
+    : '') +
+  ' — ' + item.transaction_date + ' — ' +
+  (item.description || 'መግለጫ የለም');
+      list.appendChild(p);
+    });
+    const monthInput = $('transactionReportMonth');
+const monthlyReport = $('transactionMonthlyReport');
+
+if (monthInput && monthlyReport) {
+  if (!monthInput.value) {
+    monthInput.value = new Date().toISOString().slice(0, 7);
+  }
+
+  const selectedMonth = monthInput.value;
+
+  const monthlyTransactions = data.transactions.filter(item =>
+    item.transaction_date.startsWith(selectedMonth)
+  );
+
+  let monthlySales = 0;
+  let monthlyCashCollected = 0;
+  let monthlyCostOfGoods = 0;
+  let monthlyExpenses = 0;
+
+  monthlyTransactions.forEach(item => {
+    if (item.transaction_type === 'sale') {
+      monthlySales += Number(item.amount);
+      monthlyCashCollected += Number(item.cash_received || 0);
+      monthlyCostOfGoods += Number(item.cost_of_goods || 0);
+    } else if (item.transaction_type === 'expense') {
+      monthlyExpenses += Number(item.amount);
+    }
+  });
+
+  const monthlyGrossProfit = monthlySales - monthlyCostOfGoods;
+  const monthlyNetProfit = monthlyGrossProfit - monthlyExpenses;
+
+  monthlyReport.textContent =
+    'የወሩ ሽያጭ፦ ' + monthlySales.toFixed(2) + ' ብር | ' +
+    'የተቀበለ ጥሬ ገንዘብ፦ ' + monthlyCashCollected.toFixed(2) + ' ብር | ' +
+    'የዕቃ ግዢ ወጪ፦ ' + monthlyCostOfGoods.toFixed(2) + ' ብር | ' +
+    'ሌሎች ወጪዎች፦ ' + monthlyExpenses.toFixed(2) + ' ብር | ' +
+    'ጠቅላላ ትርፍ፦ ' + monthlyGrossProfit.toFixed(2) + ' ብር | ' +
+    'የተጣራ ትርፍ፦ ' + monthlyNetProfit.toFixed(2) + ' ብር';
+
+ } catch (error) {
     message.textContent = 'ስህተት፦ ' + error.message;
   }
 }
