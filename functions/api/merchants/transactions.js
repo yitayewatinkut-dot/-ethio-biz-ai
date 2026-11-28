@@ -45,8 +45,8 @@ export async function onRequestGet({ request, env }) {
     }
 
     const result = await env.DB.prepare(`
-      SELECT id, transaction_type, amount, description,
-             transaction_date, created_at
+      SELECT id, transaction_type, amount, cash_received,
+       cost_of_goods, description, transaction_date, created_at
       FROM merchant_transactions
       WHERE merchant_id = ?
       ORDER BY transaction_date DESC, created_at DESC
